@@ -35,7 +35,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     // Validate credentials
     if(empty($email_err) && empty($password_err)){
         // Prepare a select statement
-        $sql = "SELECT id, name, email, password FROM doctors WHERE email = ?";
+        $sql = "SELECT id, name, email, password, status FROM doctors WHERE email = ?";
         
         if($stmt = mysqli_prepare($conn, $sql)){
             // Bind variables to the prepared statement as parameters
@@ -52,21 +52,33 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 // Check if email exists, if yes then verify password
                 if(mysqli_stmt_num_rows($stmt) == 1){                    
                     // Bind result variables
-                    mysqli_stmt_bind_result($stmt, $id, $name, $email, $hashed_password);
+                    mysqli_stmt_bind_result($stmt, $id, $name, $email, $hashed_password, $status);
                     if(mysqli_stmt_fetch($stmt)){
                         if(verify_password($password, $hashed_password)){
-                            // Password is correct, so start a new session
-                            session_start_if_not_started();
-                            
-                            // Store data in session variables
-                            $_SESSION["loggedin"] = true;
-                            $_SESSION["doctor_id"] = $id;
-                            $_SESSION["name"] = $name;
-                            $_SESSION["email"] = $email;
-                            $_SESSION["user_type"] = "doctor";
-                            
-                            // Redirect user to dashboard
-                            redirect("dashboard.php");
+                            // Check if the account has been approved
+                            if($status == 'approved'){
+                                // Password is correct, so start a new session
+                                session_start_if_not_started();
+                                
+                                // Store data in session variables
+                                $_SESSION["loggedin"] = true;
+                                $_SESSION["doctor_id"] = $id;
+                                $_SESSION["name"] = $name;
+                                $_SESSION["email"] = $email;
+                                $_SESSION["user_type"] = "doctor";
+                                
+                                // Redirect user to dashboard
+                                redirect("dashboard.php");
+                            } else if($status == 'pending') {
+                                // Account is still pending approval
+                                $login_err = "Your account is pending approval by the administrator.";
+                            } else if($status == 'rejected') {
+                                // Account has been rejected
+                                $login_err = "Your account application has been rejected. Please contact the administrator for more information.";
+                            } else {
+                                // Other status
+                                $login_err = "There's an issue with your account. Please contact the administrator.";
+                            }
                         } else{
                             // Password is not valid, display a generic error message
                             $login_err = "Invalid email or password.";
@@ -116,6 +128,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="form-container">
             <h2>Doctor Login</h2>
             <p>Please fill in your credentials to login.</p>
+            <p class="alert alert-info">Note: Your account must be approved by an administrator before you can log in.</p>
 
             <?php 
             if(!empty($login_err)){

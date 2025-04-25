@@ -80,7 +80,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(empty($name_err) && empty($age_err) && empty($address_err) && empty($speciality_err) && empty($email_err) && empty($password_err) && empty($confirm_password_err)){
         
         // Prepare an insert statement
-        $sql = "INSERT INTO doctors (name, age, address, speciality, email, password) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO doctors (name, age, address, speciality, email, password, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')";
          
         if($stmt = mysqli_prepare($conn, $sql)){
             // Bind variables to the prepared statement as parameters
@@ -98,7 +98,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             if(mysqli_stmt_execute($stmt)){
                 // Show success alert and redirect to login page
                 echo "<script>
-                    alert('You have successfully created an account.');
+                    alert('Your account has been created successfully. An administrator will review your application and approve it shortly.');
                     window.location.href = 'login.php';
                 </script>";
                 exit;
@@ -142,6 +142,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <div class="form-container">
             <h2>Doctor Registration</h2>
             <p>Please fill in your details to create a doctor account.</p>
+            <p class="alert alert-info">Note: Your account will need to be approved by an administrator before you can log in.</p>
             
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                 <div class="form-group">

@@ -1,17 +1,20 @@
 <?php
-// Database configuration
+// Database credentials - modify these according to your setup
 define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
+define('DB_USERNAME', 'root'); 
+define('DB_PASSWORD', '');  // Default XAMPP password is empty
 define('DB_NAME', 'pawpoint');
 
 // Attempt to connect to MySQL database
-$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD);
+$conn = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
 // Check connection
 if($conn === false){
     die("ERROR: Could not connect to database. " . mysqli_connect_error());
 }
+
+// Set charset to UTF8
+mysqli_set_charset($conn, "utf8");
 
 // Create database if it doesn't exist
 $sql = "CREATE DATABASE IF NOT EXISTS ".DB_NAME;
@@ -28,6 +31,7 @@ if(mysqli_query($conn, $sql)){
         speciality VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     
@@ -39,12 +43,54 @@ if(mysqli_query($conn, $sql)){
         name VARCHAR(255) NOT NULL,
         age INT NOT NULL,
         address TEXT NOT NULL,
+        pet_name VARCHAR(100) DEFAULT 'Not specified',
+        pet_type VARCHAR(100) DEFAULT 'Not specified',
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        email_verified TINYINT(1) DEFAULT 0,
+        verification_token VARCHAR(255) DEFAULT NULL,
+        token_expiry DATETIME DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    mysqli_query($conn, $patient_table);
+    
+    // Check if pet columns exist in patients table
+    $check_pet_columns = "SHOW COLUMNS FROM patients LIKE 'pet_name'";
+    $result = mysqli_query($conn, $check_pet_columns);
+    
+    if(mysqli_num_rows($result) == 0) {
+        // Add pet_name and pet_type columns
+        $add_pet_columns = "ALTER TABLE patients 
+                          ADD COLUMN pet_name VARCHAR(100) DEFAULT 'Not specified',
+                          ADD COLUMN pet_type VARCHAR(100) DEFAULT 'Not specified'";
+        mysqli_query($conn, $add_pet_columns);
+    }
+    
+    // Create admin table
+    $admin_table = "CREATE TABLE IF NOT EXISTS admins (
+        id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        username VARCHAR(50) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     
-    mysqli_query($conn, $patient_table);
+    mysqli_query($conn, $admin_table);
+    
+    // Insert default admin if not exists
+    $check_admin = "SELECT id FROM admins LIMIT 1";
+    $result = mysqli_query($conn, $check_admin);
+    
+    if(mysqli_num_rows($result) == 0) {
+        // No admin exists, create default admin
+        $default_username = "admin";
+        $default_email = "admin@pawpoint.com";
+        $default_password = password_hash("admin123", PASSWORD_DEFAULT);
+        
+        $insert_admin = "INSERT INTO admins (username, email, password) VALUES ('$default_username', '$default_email', '$default_password')";
+        mysqli_query($conn, $insert_admin);
+    }
 } else {
     echo "ERROR: Could not create database $database. " . mysqli_error($conn);
 }

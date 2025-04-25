@@ -19,11 +19,163 @@ if(isset($_SESSION["doctor_id"])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawPoint - Veterinary Care Platform</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Custom styles for homepage */
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        
+        header {
+            background-color: white;
+            color: #444;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            color: #3498DB;
+            font-size: 2.2rem;
+        }
+        
+        .hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 0;
+            flex-wrap: wrap;
+        }
+        
+        .hero-content {
+            flex: 1;
+            min-width: 300px;
+            padding-right: 30px;
+        }
+        
+        .hero-content h2 {
+            font-size: 2.5rem;
+            color: #2C3E50;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        
+        .hero-content p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #666;
+        }
+        
+        .hero-image {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .circle-image {
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background-color: #FF7BAC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pet-image {
+            width: 80%;
+            height: auto;
+            object-fit: cover;
+        }
+        
+        .service-section {
+            margin: 60px 0;
+        }
+        
+        .service-section h3 {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #2C3E50;
+            margin-bottom: 30px;
+        }
+        
+        .service-cards {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .service-card {
+            flex: 1;
+            min-width: 280px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .service-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .service-card h4 {
+            color: #3498DB;
+            margin-bottom: 10px;
+        }
+        
+        .cta-section {
+            background-color: #3498DB;
+            color: white;
+            padding: 50px 0;
+            text-align: center;
+            border-radius: 10px;
+        }
+        
+        .cta-section h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .cta-btn {
+            background-color: white;
+            color: #3498DB;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .cta-btn:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-3px);
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
+        <div class="container">
+            <h1>PawPoint</h1>
+            <p>Your Pet's Healthcare Companion</p>
+        </div>
     </header>
     
     <nav>
@@ -31,32 +183,52 @@ if(isset($_SESSION["doctor_id"])) {
             <li><a href="index.php">Home</a></li>
             <li><a href="doctor/login.php">Doctor Login</a></li>
             <li><a href="patient/login.php">Patient Login</a></li>
+            <li><a href="admin/login.php">Admin</a></li>
         </ul>
     </nav>
     
     <div class="container">
-        <div style="text-align: center; margin-top: 50px;">
-            <h2>Welcome to PawPoint</h2>
-            <p>Your all-in-one platform for veterinary care management.</p>
-            
-            <div style="display: flex; justify-content: center; gap: 30px; margin-top: 40px;">
-                <div class="form-container" style="width: 300px;">
-                    <h3>For Doctors</h3>
-                    <p>Veterinary professionals can manage appointments, patient records, and more.</p>
-                    <a href="doctor/login.php" class="btn btn-primary btn-block">Doctor Login</a>
-                    <p style="text-align: center; margin-top: 15px;">New to PawPoint?</p>
-                    <a href="doctor/register.php" class="btn btn-block">Register as a Doctor</a>
-                </div>
-                
-                <div class="form-container" style="width: 300px;">
-                    <h3>For Pet Owners</h3>
-                    <p>Schedule appointments, access your pet's health records, and communicate with vets.</p>
-                    <a href="patient/login.php" class="btn btn-primary btn-block">Patient Login</a>
-                    <p style="text-align: center; margin-top: 15px;">New to PawPoint?</p>
-                    <a href="patient/register.php" class="btn btn-block">Register as a Patient</a>
+        <section class="hero-section">
+            <div class="hero-content">
+                <h2>Vet Clinic</h2>
+                <p>Optimal Health for Furry Friends. Comprehensive Veterinary Services.</p>
+                <a href="patient/register.php" class="btn btn-primary">Book an Appointment</a>
+            </div>
+            <div class="hero-image">
+                <div class="circle-image">
+                    <img src="https://images.unsplash.com/photo-1560743641-3914f2c45636?ixlib=rb-1.2.1&auto=format&fit=crop&w=633&q=80" alt="Happy dog" class="pet-image">
                 </div>
             </div>
-        </div>
+        </section>
+        
+        <section class="service-section">
+            <h3>Our Services</h3>
+            <div class="service-cards">
+                <div class="service-card">
+                    <img src="https://images.unsplash.com/photo-1548767797-d8c844163c4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1351&q=80" alt="Veterinary checkup">
+                    <h4>Wellness Exams</h4>
+                    <p>Regular checkups to ensure your pet's optimal health and early detection of potential issues.</p>
+                </div>
+                <div class="service-card">
+                    <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1349&q=80" alt="Cute dog">
+                    <h4>Vaccinations</h4>
+                    <p>Essential vaccines to protect your pets from common and potentially serious diseases.</p>
+                </div>
+                <div class="service-card">
+                    <img src="https://images.unsplash.com/photo-1511044568932-338cba0ad803?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Cat health check">
+                    <h4>Dental Care</h4>
+                    <p>Complete dental services to maintain your pet's oral health and prevent future problems.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="cta-section">
+            <h3>Join Our Pawsitively Amazing Clinic</h3>
+            <div class="cta-buttons">
+                <a href="doctor/register.php" class="cta-btn">Register as Doctor</a>
+                <a href="patient/register.php" class="cta-btn">Register as Patient</a>
+            </div>
+        </section>
     </div>
     
     <footer>

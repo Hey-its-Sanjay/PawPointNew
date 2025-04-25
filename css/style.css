@@ -141,6 +141,7 @@ textarea {
     padding: 15px;
     border-radius: 4px;
     margin-bottom: 20px;
+    word-wrap: break-word;
 }
 
 .alert-success {
@@ -153,6 +154,36 @@ textarea {
     background-color: #F2DEDE;
     color: #A94442;
     border: 1px solid #EBCCD1;
+}
+
+/* Verification Container */
+.verification-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin: 30px auto;
+    max-width: 500px;
+    text-align: center;
+}
+
+.verification-container .links {
+    margin-top: 25px;
+}
+
+.verification-container .links a {
+    display: inline-block;
+    margin: 10px 0;
+    padding: 10px 20px;
+    background-color: #3498DB;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.verification-container .links a:hover {
+    background-color: #2980B9;
 }
 
 /* Links */
