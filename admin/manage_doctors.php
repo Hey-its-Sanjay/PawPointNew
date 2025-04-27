@@ -16,6 +16,18 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
     $id = intval($_GET['id']);
     $action = $_GET['action'];
     
+    // Get doctor's email before updating status
+    $doctor_email = '';
+    $doctor_name = '';
+    $get_doctor_sql = "SELECT email, name FROM doctors WHERE id = ?";
+    if($get_stmt = mysqli_prepare($conn, $get_doctor_sql)) {
+        mysqli_stmt_bind_param($get_stmt, "i", $id);
+        mysqli_stmt_execute($get_stmt);
+        mysqli_stmt_bind_result($get_stmt, $doctor_email, $doctor_name);
+        mysqli_stmt_fetch($get_stmt);
+        mysqli_stmt_close($get_stmt);
+    }
+    
     if($action == 'approve') {
         $sql = "UPDATE doctors SET status = 'approved' WHERE id = ?";
         if($stmt = mysqli_prepare($conn, $sql)) {
@@ -23,8 +35,71 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
             
+            // Send approval email to doctor
+            if(!empty($doctor_email)) {
+                $subject = "Your PawPoint Doctor Account Has Been Approved";
+                $body = "
+                <html>
+                <head>
+                    <title>Account Approved</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            border-radius: 5px;
+                        }
+                        .header {
+                            background-color: #27AE60;
+                            color: white;
+                            padding: 15px;
+                            text-align: center;
+                            border-radius: 5px 5px 0 0;
+                        }
+                        .content {
+                            padding: 20px;
+                        }
+                        .button {
+                            display: inline-block;
+                            background-color: #27AE60;
+                            color: white;
+                            padding: 12px 25px;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            margin: 20px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h2>Account Approved</h2>
+                        </div>
+                        <div class='content'>
+                            <h3>Hello Dr. ".htmlspecialchars($doctor_name).",</h3>
+                            <p>We are pleased to inform you that your PawPoint veterinary doctor account has been approved!</p>
+                            <p>You can now log in to your account and start using the platform to manage your appointments and patients.</p>
+                            <p><a href='http://localhost/Vetcare/pawpoint/doctor/login.php' class='button'>Log in to your account</a></p>
+                            <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+                            <p>Thank you for choosing PawPoint!</p>
+                            <p>Best regards,<br>The PawPoint Admin Team</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                ";
+                
+                send_email_with_phpmailer($doctor_email, $doctor_name, $subject, $body);
+            }
+            
             // Set success message
-            $success_message = "Doctor has been approved successfully.";
+            $success_message = "Doctor has been approved successfully and notification email has been sent.";
         }
     } elseif($action == 'reject') {
         $sql = "UPDATE doctors SET status = 'rejected' WHERE id = ?";
@@ -33,8 +108,61 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
             
+            // Send rejection email to doctor
+            if(!empty($doctor_email)) {
+                $subject = "PawPoint Doctor Account Application Status";
+                $body = "
+                <html>
+                <head>
+                    <title>Account Application Update</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            border-radius: 5px;
+                        }
+                        .header {
+                            background-color: #E74C3C;
+                            color: white;
+                            padding: 15px;
+                            text-align: center;
+                            border-radius: 5px 5px 0 0;
+                        }
+                        .content {
+                            padding: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h2>Account Application Update</h2>
+                        </div>
+                        <div class='content'>
+                            <h3>Hello Dr. ".htmlspecialchars($doctor_name).",</h3>
+                            <p>Thank you for your interest in joining PawPoint as a veterinary doctor.</p>
+                            <p>After careful review of your application, we regret to inform you that we are unable to approve your account at this time.</p>
+                            <p>If you have any questions or would like more information about this decision, please contact our admin team for clarification.</p>
+                            <p>You may reapply in the future with updated information if you wish.</p>
+                            <p>Best regards,<br>The PawPoint Admin Team</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                ";
+                
+                send_email_with_phpmailer($doctor_email, $doctor_name, $subject, $body);
+            }
+            
             // Set success message
-            $success_message = "Doctor has been rejected.";
+            $success_message = "Doctor has been rejected and notification email has been sent.";
         }
     } elseif($action == 'delete') {
         $sql = "DELETE FROM doctors WHERE id = ?";

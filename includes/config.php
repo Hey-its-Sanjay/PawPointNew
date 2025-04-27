@@ -32,6 +32,9 @@ if(mysqli_query($conn, $sql)){
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+        phone VARCHAR(20) DEFAULT NULL,
+        profile_picture VARCHAR(255) DEFAULT 'default.jpg',
+        bio TEXT DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     
@@ -47,6 +50,9 @@ if(mysqli_query($conn, $sql)){
         pet_type VARCHAR(100) DEFAULT 'Not specified',
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        phone VARCHAR(20) DEFAULT NULL,
+        profile_picture VARCHAR(255) DEFAULT 'default.jpg',
+        pet_details TEXT DEFAULT NULL,
         email_verified TINYINT(1) DEFAULT 0,
         verification_token VARCHAR(255) DEFAULT NULL,
         token_expiry DATETIME DEFAULT NULL,
@@ -54,6 +60,32 @@ if(mysqli_query($conn, $sql)){
     )";
     
     mysqli_query($conn, $patient_table);
+    
+    // Check if profile_picture column exists in doctors table
+    $check_doctor_profile = "SHOW COLUMNS FROM doctors LIKE 'profile_picture'";
+    $result = mysqli_query($conn, $check_doctor_profile);
+    
+    if(mysqli_num_rows($result) == 0) {
+        // Add profile_picture column to doctors table
+        $add_doctor_profile = "ALTER TABLE doctors 
+                              ADD COLUMN profile_picture VARCHAR(255) DEFAULT 'default.jpg',
+                              ADD COLUMN phone VARCHAR(20) DEFAULT NULL,
+                              ADD COLUMN bio TEXT DEFAULT NULL";
+        mysqli_query($conn, $add_doctor_profile);
+    }
+    
+    // Check if profile_picture column exists in patients table
+    $check_patient_profile = "SHOW COLUMNS FROM patients LIKE 'profile_picture'";
+    $result = mysqli_query($conn, $check_patient_profile);
+    
+    if(mysqli_num_rows($result) == 0) {
+        // Add profile_picture column to patients table
+        $add_patient_profile = "ALTER TABLE patients 
+                               ADD COLUMN profile_picture VARCHAR(255) DEFAULT 'default.jpg',
+                               ADD COLUMN phone VARCHAR(20) DEFAULT NULL,
+                               ADD COLUMN pet_details TEXT DEFAULT NULL";
+        mysqli_query($conn, $add_patient_profile);
+    }
     
     // Check if pet columns exist in patients table
     $check_pet_columns = "SHOW COLUMNS FROM patients LIKE 'pet_name'";
