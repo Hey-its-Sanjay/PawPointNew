@@ -110,6 +110,121 @@ if(mysqli_query($conn, $sql)){
     
     mysqli_query($conn, $admin_table);
     
+    // Create settings table for system configuration
+    $settings_table = "CREATE TABLE IF NOT EXISTS settings (
+        id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+        setting_key VARCHAR(100) NOT NULL UNIQUE,
+        setting_value TEXT NOT NULL,
+        setting_description TEXT,
+        setting_type ENUM('text', 'number', 'email', 'select', 'textarea', 'color', 'checkbox') DEFAULT 'text',
+        setting_options TEXT,
+        is_public TINYINT(1) DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    mysqli_query($conn, $settings_table);
+    
+    // Check if default settings exist
+    $check_settings = "SELECT COUNT(*) as count FROM settings";
+    $result = mysqli_query($conn, $check_settings);
+    $row = mysqli_fetch_assoc($result);
+    
+    // Insert default settings if none exist
+    if($row['count'] == 0) {
+        $default_settings = [
+            [
+                'key' => 'site_name',
+                'value' => 'PawPoint',
+                'description' => 'The name of the veterinary care system',
+                'type' => 'text',
+                'options' => '',
+                'is_public' => 1
+            ],
+            [
+                'key' => 'site_description',
+                'value' => 'Your Pet\'s Healthcare Companion',
+                'description' => 'Short description/tagline for the site',
+                'type' => 'text',
+                'options' => '',
+                'is_public' => 1
+            ],
+            [
+                'key' => 'contact_email',
+                'value' => 'contact@pawpoint.com',
+                'description' => 'Primary contact email address',
+                'type' => 'email',
+                'options' => '',
+                'is_public' => 1
+            ],
+            [
+                'key' => 'contact_phone',
+                'value' => '(123) 456-7890',
+                'description' => 'Primary contact phone number',
+                'type' => 'text',
+                'options' => '',
+                'is_public' => 1
+            ],
+            [
+                'key' => 'address',
+                'value' => '123 Pet Street, Animal City',
+                'description' => 'Physical address of the clinic',
+                'type' => 'textarea',
+                'options' => '',
+                'is_public' => 1
+            ],
+            [
+                'key' => 'appointment_interval',
+                'value' => '30',
+                'description' => 'Time interval in minutes between appointments',
+                'type' => 'select',
+                'options' => '15,30,45,60',
+                'is_public' => 0
+            ],
+            [
+                'key' => 'primary_color',
+                'value' => '#4a7c59',
+                'description' => 'Primary color theme for the site',
+                'type' => 'color',
+                'options' => '',
+                'is_public' => 0
+            ],
+            [
+                'key' => 'enable_doctor_registration',
+                'value' => '1',
+                'description' => 'Allow doctors to register through the site',
+                'type' => 'checkbox',
+                'options' => '',
+                'is_public' => 0
+            ],
+            [
+                'key' => 'enable_patient_registration',
+                'value' => '1',
+                'description' => 'Allow patients to register through the site',
+                'type' => 'checkbox',
+                'options' => '',
+                'is_public' => 0
+            ]
+        ];
+        
+        foreach($default_settings as $setting) {
+            $insert_setting = "INSERT INTO settings (setting_key, setting_value, setting_description, setting_type, setting_options, is_public) 
+                              VALUES (?, ?, ?, ?, ?, ?)";
+            if($stmt = mysqli_prepare($conn, $insert_setting)) {
+                mysqli_stmt_bind_param($stmt, "sssssi", 
+                    $setting['key'], 
+                    $setting['value'], 
+                    $setting['description'], 
+                    $setting['type'], 
+                    $setting['options'], 
+                    $setting['is_public']
+                );
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_close($stmt);
+            }
+        }
+    }
+    
     // Insert default admin if not exists
     $check_admin = "SELECT id FROM admins LIMIT 1";
     $result = mysqli_query($conn, $check_admin);

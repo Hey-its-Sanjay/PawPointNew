@@ -105,131 +105,138 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <title>Login - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #4a7c59, #6dbf73);
+            color: #333;
+        }
+
         .login-container {
-            max-width: 500px;
-            margin: 50px auto;
+            max-width: 400px;
+            margin: 100px auto;
             padding: 30px;
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
-        
+
+        .login-container h2 {
+            margin-bottom: 20px;
+            color: #4a7c59;
+        }
+
         .form-group {
             margin-bottom: 20px;
+            text-align: left;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        
+
         .form-control {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 5px;
             font-size: 16px;
         }
-        
-        .error {
-            color: #e74c3c;
-            margin-top: 5px;
-            font-size: 14px;
+
+        .form-control:focus {
+            border-color: #4a7c59;
+            outline: none;
+            box-shadow: 0 0 5px rgba(74, 124, 89, 0.5);
         }
-        
-        .login-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
+
         .btn-primary {
             background-color: #4a7c59;
             color: white;
             border: none;
             padding: 12px 20px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
         }
-        
+
         .btn-primary:hover {
             background-color: #3c6547;
+            transform: scale(1.05);
         }
-        
+
+        .login-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
         .register-link {
-            text-align: center;
             margin-top: 20px;
         }
-        
+
         .register-link a {
             color: #4a7c59;
             text-decoration: none;
+            font-weight: bold;
         }
-        
+
         .register-link a:hover {
             text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #fff;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
-    </header>
-    
-    <nav>
-        <ul>
-            <li><a href="../index.php">Home</a></li>
-            <li><a href="../doctor/login.php">Doctor Login</a></li>
-            <li><a href="login.php">Patient Login</a></li>
-        </ul>
-    </nav>
-    
-    <div class="container">
-        <div class="login-container">
-            <h2>Patient Login</h2>
-            <p>Please enter your credentials to login</p>
-            
-            <?php if (!empty($login_err)): ?>
-                <div class="login-error"><?php echo $login_err; ?></div>
-            <?php endif; ?>
-            
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
-                    <?php if (!empty($email_err)): ?>
-                        <div class="error"><?php echo $email_err; ?></div>
-                    <?php endif; ?>
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                    <?php if (!empty($password_err)): ?>
-                        <div class="error"><?php echo $password_err; ?></div>
-                    <?php endif; ?>
-                </div>
-                
-                <div class="form-group">
-                    <input type="submit" class="btn-primary" value="Login">
-                </div>
-                
-                <div class="register-link">
-                    <p>Don't have an account? <a href="register.php">Register here</a></p>
-                    <p><a href="forgot-password.php">Forgot password?</a></p>
-                </div>
-            </form>
-        </div>
+    <div class="login-container">
+        <h2>Welcome Back!</h2>
+        <p>Please login to continue</p>
+
+        <?php if (!empty($login_err)): ?>
+            <div class="login-error"> <?php echo $login_err; ?> </div>
+        <?php endif; ?>
+
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
+                <?php if (!empty($email_err)): ?>
+                    <div class="error"> <?php echo $email_err; ?> </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+                <?php if (!empty($password_err)): ?>
+                    <div class="error"> <?php echo $password_err; ?> </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" class="btn-primary" value="Login">
+            </div>
+
+            <div class="register-link">
+                <p>Don't have an account? <a href="register.php">Register here</a></p>
+                <p><a href="forgot-password.php">Forgot password?</a></p>
+            </div>
+        </form>
     </div>
-    
+
     <footer>
         <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
     </footer>
 </body>
-</html> 
+</html>

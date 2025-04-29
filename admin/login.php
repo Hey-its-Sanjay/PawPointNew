@@ -3,14 +3,14 @@
 session_start();
  
 // Check if the user is already logged in, if yes then redirect to dashboard
-if(isset($_SESSION["admin_id"])){
+if(isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"])){
     header("location: dashboard.php");
     exit;
 }
  
 // Include config file
-require_once "../includes/functions.php";
- 
+require_once "../includes/config.php";
+
 // Define variables and initialize with empty values
 $username = $password = "";
 $username_err = $password_err = $login_err = "";
@@ -22,7 +22,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(empty(trim($_POST["username"]))){
         $username_err = "Please enter username.";
     } else{
-        $username = sanitize_input($_POST["username"]);
+        $username = trim($_POST["username"]);
     }
     
     // Check if password is empty
@@ -54,18 +54,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     // Bind result variables
                     mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
                     if(mysqli_stmt_fetch($stmt)){
-                        if(verify_password($password, $hashed_password)){
+                        if(password_verify($password, $hashed_password)){
                             // Password is correct, so start a new session
-                            session_start_if_not_started();
+                            session_start();
                             
                             // Store data in session variables
                             $_SESSION["loggedin"] = true;
                             $_SESSION["admin_id"] = $id;
-                            $_SESSION["username"] = $username;
-                            $_SESSION["user_type"] = "admin";
+                            $_SESSION["username"] = $username;                            
                             
-                            // Redirect user to dashboard
-                            redirect("dashboard.php");
+                            // Redirect user to dashboard page
+                            header("location: dashboard.php");
                         } else{
                             // Password is not valid, display a generic error message
                             $login_err = "Invalid username or password.";
@@ -76,7 +75,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     $login_err = "Invalid username or password.";
                 }
             } else{
-                echo "Oops! Something went wrong. Please try again later.";
+                $login_err = "Oops! Something went wrong. Please try again later.";
             }
 
             // Close statement
@@ -97,65 +96,145 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <title>Admin Login - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .admin-header {
-            background-color: #34495E;
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
         }
-        .admin-nav {
-            background-color: #2C3E50;
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
-        .admin-btn {
-            background-color: #2C3E50;
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .admin-btn:hover {
-            background-color: #1A252F;
+        
+        .login-logo img {
+            max-width: 150px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: #4a5568;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .login-header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            border-color: #4299e1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .alert {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .alert-danger {
+            background-color: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+        
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4299e1;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3182ce;
+        }
+        
+        .invalid-feedback {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <header class="admin-header">
-        <h1>PawPoint Admin</h1>
-        <p>Administration Portal</p>
-    </header>
-    
-    <nav class="admin-nav">
-        <ul>
-            <li><a href="../index.php">Main Site</a></li>
-            <li><a href="login.php">Admin Login</a></li>
-        </ul>
-    </nav>
-    
-    <div class="container">
-        <div class="form-container">
-            <h2>Admin Login</h2>
-            <p>Please fill in your credentials to login.</p>
-
-            <?php 
-            if(!empty($login_err)){
-                echo '<div class="alert alert-danger">' . $login_err . '</div>';
-            }        
-            ?>
-
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" value="<?php echo $username; ?>" class="<?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $username_err; ?></span>
-                </div>    
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
-                </div>
-                <div class="form-group">
-                    <input type="submit" class="btn btn-primary btn-block admin-btn" value="Login">
-                </div>
-                <p>Default credentials: admin / admin123</p>
-            </form>
+    <div class="login-container">
+        <div class="login-logo">
+            <img src="../images/pawpoint.png" alt="PawPoint Logo">
         </div>
+        
+        <div class="login-header">
+            <h1>Admin Login</h1>
+            <p>Access the veterinary practice management portal</p>
+        </div>
+        
+        <?php if(!empty($login_err)): ?>
+            <div class="alert alert-danger"><?php echo $login_err; ?></div>
+        <?php endif; ?>
+        
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" class="form-control <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>">
+                <?php if(!empty($username_err)): ?>
+                    <span class="invalid-feedback"><?php echo $username_err; ?></span>
+                <?php endif; ?>
+            </div>    
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+                <?php if(!empty($password_err)): ?>
+                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
+                <?php endif; ?>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+        </form>
     </div>
-    
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
-    </footer>
 </body>
 </html> 

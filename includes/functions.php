@@ -331,4 +331,96 @@ function send_verification_email_local($to_email, $name, $token) {
     
     return true;
 }
+
+/**
+ * Get a setting value from the database
+ * 
+ * @param string $key The setting key to retrieve
+ * @param mixed $default Default value if setting doesn't exist
+ * @param bool $public_only Only retrieve public settings
+ * @return mixed The setting value or default if not found
+ */
+function get_setting($key, $default = '', $public_only = false) {
+    global $conn;
+    
+    $sql = "SELECT setting_value FROM settings WHERE setting_key = ?";
+    
+    if($public_only) {
+        $sql .= " AND is_public = 1";
+    }
+    
+    if($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, "s", $key);
+        
+        if(mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_store_result($stmt);
+            
+            if(mysqli_stmt_num_rows($stmt) == 1) {
+                mysqli_stmt_bind_result($stmt, $value);
+                mysqli_stmt_fetch($stmt);
+                mysqli_stmt_close($stmt);
+                return $value;
+            }
+        }
+        
+        mysqli_stmt_close($stmt);
+    }
+    
+    return $default;
+}
+
+/**
+ * Update a setting value in the database
+ * 
+ * @param string $key The setting key to update
+ * @param string $value The new value
+ * @return bool True if successful, false otherwise
+ */
+function update_setting($key, $value) {
+    global $conn;
+    
+    $sql = "UPDATE settings SET setting_value = ? WHERE setting_key = ?";
+    
+    if($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, "ss", $value, $key);
+        
+        if(mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return true;
+        }
+        
+        mysqli_stmt_close($stmt);
+    }
+    
+    return false;
+}
+
+/**
+ * Get all settings from the database
+ * 
+ * @param bool $public_only Only retrieve public settings
+ * @return array Array of settings
+ */
+function get_all_settings($public_only = false) {
+    global $conn;
+    
+    $settings = [];
+    $sql = "SELECT * FROM settings";
+    
+    if($public_only) {
+        $sql .= " WHERE is_public = 1";
+    }
+    
+    $sql .= " ORDER BY id ASC";
+    
+    $result = mysqli_query($conn, $sql);
+    
+    if($result) {
+        while($row = mysqli_fetch_assoc($result)) {
+            $settings[] = $row;
+        }
+    }
+    
+    return $settings;
+}
 ?> 
