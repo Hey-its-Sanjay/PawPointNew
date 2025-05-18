@@ -54,12 +54,17 @@ function generate_token($length = 32) {
 function send_verification_email($to, $token) {
     $subject = "Verify Your Email Address - PawPoint";
     
-    // Use the IP address directly instead of hostname for local network access
-    $ip_address = "192.168.1.88";
-    $protocol = "http";
+    // Get local IP for mobile access
+    $host = $_SERVER['SERVER_ADDR'];
+    if ($host === '::1' || $host === '127.0.0.1') {
+        // If localhost, get the actual local IP
+        $host = gethostbyname(gethostname());
+    }
     
-    // Create a verification link that works on the local network
-    $verification_link = $protocol . "://" . $ip_address . "/Vetcare/pawpoint/patient/verify_email.php?email=" . urlencode($to) . "&token=" . $token;
+    $protocol = "http"; // Use http for local network
+    
+    // Create a verification link that works on both mobile and PC
+    $verification_link = $protocol . "://" . $host . "/Vetcare/pawpoint/patient/verify.php?token=" . $token;
     
     // Create HTML email message
     $message = "
@@ -222,17 +227,30 @@ function verify_patient_email($token) {
     
     $current_time = date('Y-m-d H:i:s');
     
-    $sql = "SELECT id FROM patients WHERE verification_token = ? AND token_expiry > ?";
+    // First check if the token exists and get patient details
+    $sql = "SELECT id, email_verified, token_expiry FROM patients WHERE verification_token = ?";
     
     if($stmt = mysqli_prepare($conn, $sql)) {
-        mysqli_stmt_bind_param($stmt, "ss", $token, $current_time);
+        mysqli_stmt_bind_param($stmt, "s", $token);
         
         if(mysqli_stmt_execute($stmt)) {
             mysqli_stmt_store_result($stmt);
             
             if(mysqli_stmt_num_rows($stmt) == 1) {
-                mysqli_stmt_bind_result($stmt, $patient_id);
+                mysqli_stmt_bind_result($stmt, $patient_id, $is_verified, $expiry);
                 if(mysqli_stmt_fetch($stmt)) {
+                    // Check if already verified
+                    if($is_verified == 1) {
+                        mysqli_stmt_close($stmt);
+                        return "already_verified";
+                    }
+                    
+                    // Check if token has expired
+                    if(strtotime($expiry) < strtotime($current_time)) {
+                        mysqli_stmt_close($stmt);
+                        return "expired";
+                    }
+                    
                     // Update the patient record to mark as verified
                     $update_sql = "UPDATE patients SET email_verified = 1, verification_token = NULL, token_expiry = NULL WHERE id = ?";
                     
@@ -241,19 +259,21 @@ function verify_patient_email($token) {
                         
                         if(mysqli_stmt_execute($update_stmt)) {
                             mysqli_stmt_close($update_stmt);
-                            return true;
+                            mysqli_stmt_close($stmt);
+                            return "success";
                         }
-                        
                         mysqli_stmt_close($update_stmt);
                     }
                 }
+            } else {
+                mysqli_stmt_close($stmt);
+                return "invalid";
             }
         }
-        
         mysqli_stmt_close($stmt);
     }
     
-    return false;
+    return "error";
 }
 
 // Function to check if patient email is verified
@@ -284,7 +304,17 @@ function is_patient_email_verified($email) {
 function send_verification_email_local($to_email, $name, $token) {
     $subject = "Verify Your Email - PawPoint Veterinary Care";
     
-    $verification_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/../patient/verify.php?token=" . $token;
+    // Get the server information dynamically
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    
+    // Use HTTP_X_FORWARDED_HOST if behind a proxy, otherwise use HTTP_HOST
+    $host = isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : 
+           (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']);
+           
+    // Remove any port numbers from the host if present
+    $host = preg_replace('/:\d+$/', '', $host);
+    
+    $verification_link = $protocol . "://" . $host . "/Vetcare/pawpoint/patient/verify.php?token=" . $token;
     
     $message = "
     <html>
@@ -423,4 +453,4 @@ function get_all_settings($public_only = false) {
     
     return $settings;
 }
-?> 
+?>

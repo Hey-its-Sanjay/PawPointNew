@@ -183,176 +183,256 @@ if($stmt = mysqli_prepare($conn, $sql)){
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .profile-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-        }
-        
-        .profile-sidebar {
-            flex: 1;
-            min-width: 250px;
-            max-width: 300px;
-        }
-        
-        .profile-content {
-            flex: 3;
-            min-width: 300px;
-        }
-        
-        .profile-picture-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .profile-picture {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid #4a7c59;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        
-        .btn-update {
-            background-color: #4a7c59;
-        }
-        
-        .btn-update:hover {
-            background-color: #3e6b4a;
-        }
-        
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        textarea.form-control {
-            min-height: 100px;
-            resize: vertical;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - PawPoint</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      padding: 0;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    body {
+      background-color: #f4f7fa;
+      color: #333;
+    }
+
+    header {
+      background-color: #003f6b;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    nav {
+      background-color: #005b96;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: #d4f0fc;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .profile-container {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+
+    .profile-sidebar {
+      flex: 1;
+      max-width: 300px;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .profile-content {
+      flex: 2;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .profile-picture-container {
+      text-align: center;
+    }
+
+    .profile-picture {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid #4a7c59;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .btn {
+      background-color: #4a7c59;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #3e6b4a;
+    }
+
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .alert-danger {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .invalid-feedback {
+      color: red;
+      font-size: 0.85rem;
+    }
+
+    .form-text {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      color: #777;
+      border-top: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
-    </header>
-    
-    <nav>
-        <ul>
-            <li><a href="dashboard.php">Dashboard</a></li>
-            <li><a href="profile.php" class="active">My Profile</a></li>
-            <li><a href="appointments.php">My Appointments</a></li>
-            <li><a href="logout.php">Logout</a></li>
-        </ul>
-    </nav>
-    
-    <div class="container">
-        <h2>My Profile</h2>
-        
-        <?php 
-            if(!empty($success_message)){
-                echo '<div class="alert alert-success">' . $success_message . '</div>';
-            }
-            if(!empty($error_message)){
-                echo '<div class="alert alert-danger">' . $error_message . '</div>';
-            }
-        ?>
-        
-        <div class="profile-container">
-            <div class="profile-sidebar">
-                <div class="profile-picture-container">
-                    <img src="../uploads/profile_pictures/<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="profile-picture">
-                    
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data" class="mt-3">
-                        <div class="form-group">
-                            <input type="file" name="profile_picture" class="form-control <?php echo (!empty($profile_picture_err)) ? 'is-invalid' : ''; ?>">
-                            <span class="invalid-feedback"><?php echo $profile_picture_err; ?></span>
-                        </div>
-                        <div class="form-group">
-                            <input type="submit" name="upload_picture" class="btn btn-update" value="Update Picture">
-                        </div>
-                    </form>
-                </div>
+  <header>
+    <h1>PawPoint</h1>
+    <p>Your Pet's Healthcare Companion</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="dashboard.php">Dashboard</a></li>
+      <li><a href="profile.php" class="active">My Profile</a></li>
+      <li><a href="appointments.php">My Appointments</a></li>
+      <li><a href="logout.php">Logout</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h2>My Profile</h2>
+
+    <?php 
+      if (!empty($success_message)) {
+          echo '<div class="alert alert-success">' . $success_message . '</div>';
+      }
+      if (!empty($error_message)) {
+          echo '<div class="alert alert-danger">' . $error_message . '</div>';
+      }
+    ?>
+
+    <div class="profile-container">
+      <div class="profile-sidebar">
+        <div class="profile-picture-container">
+          <img src="../uploads/profile_pictures/<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="profile-picture">
+          <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <input type="file" name="profile_picture" class="form-control <?php echo (!empty($profile_picture_err)) ? 'is-invalid' : ''; ?>">
+              <span class="invalid-feedback"><?php echo $profile_picture_err; ?></span>
             </div>
-            
-            <div class="profile-content">
-                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" name="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>">
-                        <span class="invalid-feedback"><?php echo $name_err; ?></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Age</label>
-                        <input type="number" name="age" class="form-control <?php echo (!empty($age_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($age); ?>">
-                        <span class="invalid-feedback"><?php echo $age_err; ?></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Address</label>
-                        <textarea name="address" class="form-control <?php echo (!empty($address_err)) ? 'is-invalid' : ''; ?>"><?php echo htmlspecialchars($address); ?></textarea>
-                        <span class="invalid-feedback"><?php echo $address_err; ?></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" name="phone" class="form-control <?php echo (!empty($phone_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($phone); ?>">
-                        <span class="invalid-feedback"><?php echo $phone_err; ?></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Speciality</label>
-                        <input type="text" name="speciality" class="form-control <?php echo (!empty($speciality_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($speciality); ?>">
-                        <span class="invalid-feedback"><?php echo $speciality_err; ?></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Professional Bio (optional)</label>
-                        <textarea name="bio" class="form-control <?php echo (!empty($bio_err)) ? 'is-invalid' : ''; ?>"><?php echo htmlspecialchars($bio); ?></textarea>
-                        <span class="invalid-feedback"><?php echo $bio_err; ?></span>
-                        <small class="form-text text-muted">Share information about your professional experience, education, and areas of expertise.</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <input type="submit" name="update_profile" class="btn btn-update" value="Update Profile">
-                    </div>
-                </form>
+            <div class="form-group">
+              <input type="submit" name="upload_picture" class="btn" value="Update Picture">
             </div>
+          </form>
         </div>
+      </div>
+
+      <div class="profile-content">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>">
+            <span class="invalid-feedback"><?php echo $name_err; ?></span>
+          </div>
+
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" name="age" class="form-control <?php echo (!empty($age_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($age); ?>">
+            <span class="invalid-feedback"><?php echo $age_err; ?></span>
+          </div>
+
+          <div class="form-group">
+            <label>Address</label>
+            <textarea name="address" class="form-control <?php echo (!empty($address_err)) ? 'is-invalid' : ''; ?>"><?php echo htmlspecialchars($address); ?></textarea>
+            <span class="invalid-feedback"><?php echo $address_err; ?></span>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" class="form-control <?php echo (!empty($phone_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($phone); ?>">
+            <span class="invalid-feedback"><?php echo $phone_err; ?></span>
+          </div>
+
+          <div class="form-group">
+            <label>Speciality</label>
+            <input type="text" name="speciality" class="form-control <?php echo (!empty($speciality_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($speciality); ?>">
+            <span class="invalid-feedback"><?php echo $speciality_err; ?></span>
+          </div>
+
+          <div class="form-group">
+            <label>Professional Bio (optional)</label>
+            <textarea name="bio" class="form-control <?php echo (!empty($bio_err)) ? 'is-invalid' : ''; ?>"><?php echo htmlspecialchars($bio); ?></textarea>
+            <span class="invalid-feedback"><?php echo $bio_err; ?></span>
+            <small class="form-text">Share info about your experience, education, expertise.</small>
+          </div>
+
+          <div class="form-group">
+            <input type="submit" name="update_profile" class="btn" value="Update Profile">
+          </div>
+        </form>
+      </div>
     </div>
-    
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
-    </footer>
+  </div>
+
+  <footer>
+    <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
+  </footer>
 </body>
-</html> 
+</html>

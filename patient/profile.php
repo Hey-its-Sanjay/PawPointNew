@@ -301,8 +301,7 @@ if($stmt = mysqli_prepare($conn, $sql)){
             <div class="profile-sidebar">
                 <div class="profile-picture-container">
                     <img src="../uploads/profile_pictures/<?php echo htmlspecialchars($profile_picture); ?>" alt="Profile Picture" class="profile-picture">
-                    
-                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data" class="mt-3">
+                          <form action="/Vetcare/pawpoint/patient/profile.php" method="post" enctype="multipart/form-data" class="mt-3">
                         <div class="form-group">
                             <input type="file" name="profile_picture" class="form-control <?php echo (!empty($profile_picture_err)) ? 'is-invalid' : ''; ?>">
                             <span class="invalid-feedback"><?php echo $profile_picture_err; ?></span>
@@ -313,9 +312,8 @@ if($stmt = mysqli_prepare($conn, $sql)){
                     </form>
                 </div>
             </div>
-            
-            <div class="profile-content">
-                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+              <div class="profile-content">
+                <form action="/Vetcare/pawpoint/patient/profile.php" method="post">
                     <div class="form-group">
                         <label>Full Name</label>
                         <input type="text" name="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>">

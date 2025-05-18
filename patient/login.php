@@ -97,92 +97,109 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 }
 ?>
  
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>Login - VetCare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a2e0e6ad65.js" crossorigin="anonymous"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Quicksand', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to right, #4a7c59, #6dbf73);
-            color: #333;
+            background: linear-gradient(to right, #cbe9d8, #e0f7f1);
         }
 
         .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
+            max-width: 420px;
+            margin: 80px auto;
+            padding: 40px 30px;
             background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
+        .login-container img {
+            width: 80px;
+            margin-bottom: 15px;
+        }
+
         .login-container h2 {
-            margin-bottom: 20px;
-            color: #4a7c59;
+            color: #31725b;
+            margin-bottom: 10px;
+        }
+
+        .login-container p {
+            color: #666;
+            margin-bottom: 25px;
         }
 
         .form-group {
             margin-bottom: 20px;
             text-align: left;
+            position: relative;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        .form-group i {
+            position: absolute;
+            top: 12px;
+            left: 10px;
+            color: #31725b;
         }
 
-        .form-control {
+        .form-group input {
             width: 100%;
-            padding: 10px;
+            padding: 10px 10px 10px 35px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 15px;
         }
 
-        .form-control:focus {
-            border-color: #4a7c59;
+        .form-group input:focus {
+            border-color: #31725b;
             outline: none;
-            box-shadow: 0 0 5px rgba(74, 124, 89, 0.5);
+            box-shadow: 0 0 6px rgba(49, 114, 91, 0.2);
         }
 
         .btn-primary {
-            background-color: #4a7c59;
+            width: 100%;
+            background-color: #31725b;
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 12px;
             font-size: 16px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: 0.3s;
         }
 
         .btn-primary:hover {
-            background-color: #3c6547;
-            transform: scale(1.05);
+            background-color: #285c4c;
         }
 
         .login-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: #ffe0e0;
+            color: #a33;
+            padding: 12px;
+            margin-bottom: 15px;
             border-radius: 5px;
         }
 
         .register-link {
             margin-top: 20px;
+            font-size: 14px;
         }
 
         .register-link a {
-            color: #4a7c59;
+            color: #31725b;
             text-decoration: none;
             font-weight: bold;
         }
@@ -193,15 +210,38 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         footer {
             text-align: center;
-            margin-top: 50px;
-            color: #fff;
+            margin-top: 60px;
+            color: #444;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 40px 20px;
+            }
         }
     </style>
 </head>
 <body>
+<nav style="background-color: #4a7c59; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white;">
+    <div style="font-size: 1.5em; font-weight: bold;">
+    <div class="logo">
+                    <img src="../images/pawpoint.png" alt="PawPoint Logo" style="height: 60px; margin-right: 5px; vertical-align: middle;">
+                    Paw<span>Point</span>
+                </div>
+        
+    </div>
+    <div>
+        <a href="../index.php" style="margin-right: 20px; text-decoration: none; color: white;">Home</a>
+        <a href="login.php" style="margin-right: 20px; text-decoration: none; color: white;">Login</a>
+        <a href="register.php" style="text-decoration: none; color: white;">Sign Up</a>
+    </div>
+</nav>
+
     <div class="login-container">
-        <h2>Welcome Back!</h2>
-        <p>Please login to continue</p>
+        <img src="../images/PawPoint.png" alt="Vet Logo" />
+        <h2>Welcome to VetCare</h2>
+        <p>Please login to continue caring for your furry friends</p>
 
         <?php if (!empty($login_err)): ?>
             <div class="login-error"> <?php echo $login_err; ?> </div>
@@ -209,34 +249,36 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" name="email" id="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" id="email"
+                    class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>"
+                    placeholder="Email Address" value="<?php echo $email; ?>">
                 <?php if (!empty($email_err)): ?>
                     <div class="error"> <?php echo $email_err; ?> </div>
                 <?php endif; ?>
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" name="password" id="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" id="password"
+                    class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>"
+                    placeholder="Password">
                 <?php if (!empty($password_err)): ?>
                     <div class="error"> <?php echo $password_err; ?> </div>
                 <?php endif; ?>
             </div>
 
-            <div class="form-group">
-                <input type="submit" class="btn-primary" value="Login">
-            </div>
+            <button type="submit" class="btn-primary">Login</button>
 
             <div class="register-link">
-                <p>Don't have an account? <a href="register.php">Register here</a></p>
+                <p>Don't have an account? <a href="register.php">Register</a></p>
                 <p><a href="forgot-password.php">Forgot password?</a></p>
             </div>
         </form>
     </div>
 
     <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
+        <p>&copy; <?php echo date("Y"); ?> VetCare. All rights reserved.</p>
     </footer>
 </body>
 </html>

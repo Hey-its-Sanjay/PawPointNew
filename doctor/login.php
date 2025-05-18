@@ -101,21 +101,163 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     mysqli_close($conn);
 }
 ?>
- 
-<!DOCTYPE html>
+
+
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Login - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #005b96;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+        }
+
+        header p {
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        nav {
+            background-color: #003f6b;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+        }
+
+        nav ul li a:hover {
+            background-color: #005b96;
+        }
+
+        .login-container {
+            max-width: 500px;
+            background-color: white;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container h2 {
+            margin-bottom: 15px;
+            color: #005b96;
+        }
+
+        .login-container p {
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #005b96;
+            outline: none;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background-color: #005b96;
+            color: white;
+            padding: 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #00477a;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .alert-info {
+            background-color: #e7f3fe;
+            color: #31708f;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .invalid-feedback {
+            color: red;
+            font-size: 0.9em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.9em;
+            background-color: #f0f0f0;
+            color: #555;
+            margin-top: 60px;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>PawPoint</h1>
+        <h1>🐾 PawPoint</h1>
         <p>Your Pet's Healthcare Companion</p>
     </header>
-    
+
     <nav>
         <ul>
             <li><a href="../index.php">Home</a></li>
@@ -123,40 +265,41 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <li><a href="../patient/login.php">Patient Login</a></li>
         </ul>
     </nav>
-    
-    <div class="container">
-        <div class="form-container">
-            <h2>Doctor Login</h2>
-            <p>Please fill in your credentials to login.</p>
-            <p class="alert alert-info">Note: Your account must be approved by an administrator before you can log in.</p>
 
-            <?php 
-            if(!empty($login_err)){
-                echo '<div class="alert alert-danger">' . $login_err . '</div>';
-            }        
-            ?>
+    <div class="login-container">
+        <h2>Doctor Login</h2>
+        <p>Please fill in your credentials to login.</p>
+        <p class="alert alert-info">Note: Your account must be approved by an administrator before you can log in.</p>
 
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" value="<?php echo $email; ?>" class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $email_err; ?></span>
-                </div>    
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
-                </div>
-                <div class="form-group">
-                    <input type="submit" class="btn btn-primary btn-block" value="Login">
-                </div>
-                <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
-            </form>
-        </div>
+        <?php 
+        if (!empty($login_err)) {
+            echo '<div class="alert alert-danger">' . $login_err . '</div>';
+        }        
+        ?>
+
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="<?php echo $email; ?>" class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>">
+                <span class="invalid-feedback"><?php echo $email_err; ?></span>
+            </div>    
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+                <span class="invalid-feedback"><?php echo $password_err; ?></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" class="btn-primary" value="Login">
+            </div>
+
+            <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
+        </form>
     </div>
-    
+
     <footer>
         <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
     </footer>
 </body>
-</html> 
+</html>

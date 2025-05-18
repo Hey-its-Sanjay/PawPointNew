@@ -324,9 +324,9 @@ if($result) {
                             <?php elseif($doctor['status'] == 'rejected'): ?>
                                 <span class="status-rejected">Rejected</span>
                             <?php endif; ?>
-                        </td>
-                        <td>
+                        </td>                        <td>
                             <div class="action-buttons">
+                                <a href="view_doctor.php?id=<?= $doctor['id'] ?>" class="btn btn-info btn-small">View</a>
                                 <?php if($doctor['status'] == 'pending'): ?>
                                     <a href="manage_doctors.php?action=approve&id=<?= $doctor['id'] ?>" class="btn btn-approve btn-small">Approve</a>
                                     <a href="manage_doctors.php?action=reject&id=<?= $doctor['id'] ?>" class="btn btn-reject btn-small">Reject</a>

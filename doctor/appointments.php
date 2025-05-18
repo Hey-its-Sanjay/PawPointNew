@@ -1,4 +1,8 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Initialize the session
 session_start();
  
@@ -8,8 +12,10 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
     exit;
 }
 
-// Include config file
-require_once "../includes/functions.php";
+// Include config and email functions
+require_once "D:/xampp/htdocs/Vetcare/pawpoint/includes/functions.php";
+require_once "D:/xampp/htdocs/Vetcare/pawpoint/includes/phpmailer_setup.php";
+require_once "D:/xampp/htdocs/Vetcare/pawpoint/includes/email_functions.php";
 
 // Define variables
 $success_message = $error_message = "";
@@ -18,16 +24,14 @@ $success_message = $error_message = "";
 if(isset($_GET['action']) && isset($_GET['id'])) {
     $appointment_id = intval($_GET['id']);
     $action = $_GET['action'];
-    
-    // Check if the appointment belongs to the current doctor
-    $check_sql = "SELECT id FROM appointments WHERE id = ? AND doctor_id = ?";
+
+    // Check if the appointment belongs to the current doctor and get patient info
+    $check_sql = "SELECT a.id, a.appointment_date, a.appointment_time, a.status, p.email as patient_email, p.name as patient_name, d.name as doctor_name FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN doctors d ON a.doctor_id = d.id WHERE a.id = ? AND a.doctor_id = ?";
     if($check_stmt = mysqli_prepare($conn, $check_sql)) {
         mysqli_stmt_bind_param($check_stmt, "ii", $appointment_id, $_SESSION["doctor_id"]);
         mysqli_stmt_execute($check_stmt);
-        mysqli_stmt_store_result($check_stmt);
-        
-        if(mysqli_stmt_num_rows($check_stmt) > 0) {
-            // Get the new status based on action
+        $result = mysqli_stmt_get_result($check_stmt);
+        if($row = mysqli_fetch_assoc($result)) {
             $new_status = "";
             if($action == "confirm") {
                 $new_status = "confirmed";
@@ -36,7 +40,7 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
             } elseif($action == "cancel") {
                 $new_status = "cancelled";
             }
-            
+
             if(!empty($new_status)) {
                 // Update appointment status
                 $update_sql = "UPDATE appointments SET status = ? WHERE id = ?";
@@ -45,6 +49,25 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
                     if(mysqli_stmt_execute($update_stmt)) {
                         $action_text = ucfirst($new_status);
                         $success_message = "Appointment has been {$action_text} successfully.";
+
+                        // Send email notification to patient
+                        if ($action == "confirm") {
+                            send_appointment_accept_email(
+                                $row['patient_email'],
+                                $row['patient_name'],
+                                $row['appointment_date'],
+                                $row['appointment_time'],
+                                $row['doctor_name']
+                            );
+                        } elseif ($action == "cancel") {
+                            send_appointment_reject_email(
+                                $row['patient_email'],
+                                $row['patient_name'],
+                                $row['appointment_date'],
+                                $row['appointment_time'],
+                                $row['doctor_name']
+                            );
+                        }
                     } else {
                         $error_message = "Oops! Something went wrong. Please try again later.";
                     }
@@ -54,7 +77,6 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
         } else {
             $error_message = "Invalid appointment or you don't have permission to manage this appointment.";
         }
-        
         mysqli_stmt_close($check_stmt);
     }
 }
@@ -119,131 +141,182 @@ if ($filtered_status === 'all') {
     <title>Manage Appointments - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+        }        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #34495e;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        nav ul li {
+            margin: 0;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 12px 18px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background-color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }        h2 {
+            color: #2c3e50;
+        }
+
         .table {
             border-collapse: collapse;
-            margin: 25px 0;
             width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .table th, .table td {
             border: 1px solid #ddd;
-            padding: 12px 15px;
+            padding: 15px;
             text-align: left;
-        }
-        .table th {
-            background-color: #4a7c59;
+        }        .table th {
+            background-color: #2c3e50;
             color: white;
-            font-weight: bold;
         }
         .table tr:nth-child(even) {
-            background-color: #f5f5f5;
+            background-color: #f9f9f9;
         }
         .table tr:hover {
-            background-color: #f1f1f1;
+            background-color: #eef3f0;
         }
-        .status-pending {
-            background-color: #F39C12;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .status-confirmed {
-            background-color: #27AE60;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .status-completed {
-            background-color: #3498DB;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
+
+        .status-pending,
+        .status-confirmed,
+        .status-completed,
         .status-cancelled {
-            background-color: #E74C3C;
-            border-radius: 4px;
-            color: white;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
             display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
+        }        .status-pending { background-color: #f39c12; color: white; }
+        .status-confirmed { background-color: #3498db; color: white; }
+        .status-completed { background-color: #2ecc71; color: white; }
+        .status-cancelled { background-color: #e74c3c; color: white; }
+
         .btn-small {
-            padding: 5px 10px;
+            padding: 7px 12px;
             font-size: 0.8rem;
             margin-right: 5px;
-        }
-        .btn-confirm {
-            background-color: #27AE60;
-        }
-        .btn-complete {
-            background-color: #3498DB;
-        }
-        .btn-cancel {
-            background-color: #E74C3C;
-        }
+            border: none;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }        .btn-confirm { background-color: #3498db; }
+        .btn-complete { background-color: #2ecc71; }
+        .btn-cancel { background-color: #e74c3c; }
+
+        .btn-confirm:hover { background-color: #2980b9; }
+        .btn-complete:hover { background-color: #27ae60; }
+        .btn-cancel:hover { background-color: #c0392b; }
+
         .filter-tabs {
             display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ccc;
         }
         .filter-tab {
             padding: 10px 15px;
-            margin-right: 5px;
-            cursor: pointer;
             border-radius: 5px 5px 0 0;
+            background-color: #e0e0e0;
             text-decoration: none;
             color: #333;
+            font-weight: bold;
         }
         .filter-tab:hover {
-            background-color: #f1f1f1;
-        }
-        .filter-tab.active {
-            background-color: #4a7c59;
+            background-color: #ccc;
+        }        .filter-tab.active {
+            background-color: #2c3e50;
             color: white;
+        }
+
+        .alert-success,
+        .alert-error {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
         }
         .alert-success {
             background-color: #d4edda;
             color: #155724;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
         }
         .alert-error {
             background-color: #f8d7da;
             color: #721c24;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
         }
+
         .today-highlight {
-            background-color: #fcf8e3 !important;
+            background-color: #fffdd0 !important;
         }
+
         .appointment-summary {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
             margin-bottom: 20px;
         }
         .summary-card {
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 15px;
             flex: 1;
-            margin-right: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            padding: 20px;
             text-align: center;
-        }
-        .summary-card:last-child {
-            margin-right: 0;
-        }
-        .summary-number {
-            font-size: 1.8rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+        }        .summary-number {
+            font-size: 2rem;
             font-weight: bold;
-            color: #4a7c59;
-            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .appointment-summary {
+                flex-direction: column;
+            }
+            .filter-tabs {
+                flex-direction: column;
+            }
+            .btn-small {
+                display: block;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
@@ -252,7 +325,7 @@ if ($filtered_status === 'all') {
         <h1>PawPoint</h1>
         <p>Your Pet's Healthcare Companion</p>
     </header>
-    
+
     <nav>
         <ul>
             <li><a href="dashboard.php">Dashboard</a></li>
@@ -262,19 +335,19 @@ if ($filtered_status === 'all') {
             <li><a href="logout.php">Logout</a></li>
         </ul>
     </nav>
-    
+
     <div class="container">
         <h2>Manage Appointments</h2>
-        
+
         <?php 
             if(!empty($success_message)) {
-                echo '<div class="alert alert-success">' . $success_message . '</div>';
+                echo '<div class="alert-success">' . $success_message . '</div>';
             }
             if(!empty($error_message)) {
-                echo '<div class="alert alert-error">' . $error_message . '</div>';
+                echo '<div class="alert-error">' . $error_message . '</div>';
             }
         ?>
-        
+
         <div class="appointment-summary">
             <div class="summary-card">
                 <h3>Today's Appointments</h3>
@@ -297,76 +370,67 @@ if ($filtered_status === 'all') {
                 <div class="summary-number"><?= count($appointments) ?></div>
             </div>
         </div>
-        
-        <div class="form-container">
-            <div class="filter-tabs">
-                <a href="appointments.php" class="filter-tab <?= ($filtered_status === 'all') ? 'active' : '' ?>">All</a>
-                <a href="appointments.php?filter=pending" class="filter-tab <?= ($filtered_status === 'pending') ? 'active' : '' ?>">Pending</a>
-                <a href="appointments.php?filter=confirmed" class="filter-tab <?= ($filtered_status === 'confirmed') ? 'active' : '' ?>">Confirmed</a>
-                <a href="appointments.php?filter=completed" class="filter-tab <?= ($filtered_status === 'completed') ? 'active' : '' ?>">Completed</a>
-                <a href="appointments.php?filter=cancelled" class="filter-tab <?= ($filtered_status === 'cancelled') ? 'active' : '' ?>">Cancelled</a>
-            </div>
-            
-            <?php if(count($filtered_appointments) > 0): ?>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Patient</th>
-                            <th>Pet</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach($filtered_appointments as $appointment): 
-                            // Check if appointment is today
-                            $is_today = ($appointment['appointment_date'] === date('Y-m-d'));
-                            $row_class = $is_today ? 'today-highlight' : '';
-                        ?>
-                            <tr class="<?= $row_class ?>">
-                                <td><?= htmlspecialchars($appointment['patient_name']) ?></td>
-                                <td>
-                                    <?= htmlspecialchars($appointment['pet_name']) ?><br>
-                                    <small><?= htmlspecialchars($appointment['pet_type']) ?></small>
-                                </td>
-                                <td><?= date('M d, Y', strtotime($appointment['appointment_date'])) ?></td>
-                                <td><?= date('h:i A', strtotime($appointment['appointment_time'])) ?></td>
-                                <td><?= htmlspecialchars($appointment['reason']) ?></td>
-                                <td>
-                                    <?php if($appointment['status'] == 'pending'): ?>
-                                        <span class="status-pending">Pending</span>
-                                    <?php elseif($appointment['status'] == 'confirmed'): ?>
-                                        <span class="status-confirmed">Confirmed</span>
-                                    <?php elseif($appointment['status'] == 'completed'): ?>
-                                        <span class="status-completed">Completed</span>
-                                    <?php elseif($appointment['status'] == 'cancelled'): ?>
-                                        <span class="status-cancelled">Cancelled</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if($appointment['status'] == 'pending'): ?>
-                                        <a href="appointments.php?action=confirm&id=<?= $appointment['id'] ?>" class="btn btn-confirm btn-small">Confirm</a>
-                                        <a href="appointments.php?action=cancel&id=<?= $appointment['id'] ?>" class="btn btn-cancel btn-small" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel</a>
-                                    <?php elseif($appointment['status'] == 'confirmed'): ?>
-                                        <a href="appointments.php?action=complete&id=<?= $appointment['id'] ?>" class="btn btn-complete btn-small">Complete</a>
-                                        <a href="appointments.php?action=cancel&id=<?= $appointment['id'] ?>" class="btn btn-cancel btn-small" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel</a>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p>No <?= ($filtered_status !== 'all') ? $filtered_status : '' ?> appointments found.</p>
-            <?php endif; ?>
+
+        <div class="filter-tabs">
+            <a href="appointments.php" class="filter-tab <?= ($filtered_status === 'all') ? 'active' : '' ?>">All</a>
+            <a href="appointments.php?filter=pending" class="filter-tab <?= ($filtered_status === 'pending') ? 'active' : '' ?>">Pending</a>
+            <a href="appointments.php?filter=confirmed" class="filter-tab <?= ($filtered_status === 'confirmed') ? 'active' : '' ?>">Confirmed</a>
+            <a href="appointments.php?filter=completed" class="filter-tab <?= ($filtered_status === 'completed') ? 'active' : '' ?>">Completed</a>
+            <a href="appointments.php?filter=cancelled" class="filter-tab <?= ($filtered_status === 'cancelled') ? 'active' : '' ?>">Cancelled</a>
         </div>
+
+        <?php if(count($filtered_appointments) > 0): ?>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Pet</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach($filtered_appointments as $appointment): 
+                        $is_today = ($appointment['appointment_date'] === date('Y-m-d'));
+                        $row_class = $is_today ? 'today-highlight' : '';
+                    ?>
+                        <tr class="<?= $row_class ?>">
+                            <td><?= htmlspecialchars($appointment['patient_name']) ?></td>
+                            <td>
+                                <?= htmlspecialchars($appointment['pet_name']) ?><br>
+                                <small><?= htmlspecialchars($appointment['pet_type']) ?></small>
+                            </td>
+                            <td><?= date('M d, Y', strtotime($appointment['appointment_date'])) ?></td>
+                            <td><?= date('h:i A', strtotime($appointment['appointment_time'])) ?></td>
+                            <td><?= htmlspecialchars($appointment['reason']) ?></td>
+                            <td>
+                                <span class="status-<?= $appointment['status'] ?>">
+                                    <?= ucfirst($appointment['status']) ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php if($appointment['status'] == 'pending'): ?>
+                                    <a href="appointments.php?action=confirm&id=<?= $appointment['id'] ?>" class="btn-confirm btn-small">Confirm</a>
+                                    <a href="appointments.php?action=cancel&id=<?= $appointment['id'] ?>" class="btn-cancel btn-small" onclick="return confirm('Cancel this appointment?')">Cancel</a>
+                                <?php elseif($appointment['status'] == 'confirmed'): ?>
+                                    <a href="appointments.php?action=complete&id=<?= $appointment['id'] ?>" class="btn-complete btn-small">Complete</a>
+                                    <a href="appointments.php?action=cancel&id=<?= $appointment['id'] ?>" class="btn-cancel btn-small" onclick="return confirm('Cancel this appointment?')">Cancel</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>No <?= ($filtered_status !== 'all') ? $filtered_status : '' ?> appointments found.</p>
+        <?php endif; ?>
     </div>
-    
+
     <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
+        <p>&copy; <?= date("Y") ?> PawPoint. All rights reserved.</p>
     </footer>
 </body>
-</html> 
+</html>

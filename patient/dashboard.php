@@ -239,6 +239,8 @@ if($doctor_result) {
         <div class="alert alert-success">
             You have successfully logged in to your patient account.
         </div>
+          
+        
         
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 40px;">
             <div class="form-container" style="width: 100%; max-width: 48%; min-width: 300px; margin-bottom: 20px;">

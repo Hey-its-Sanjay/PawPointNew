@@ -241,105 +241,232 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     mysqli_close($conn);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Registration - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - PawPoint</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #4a7c59, #6dbf73);
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .register-container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      color: #4a7c59;
+      margin-bottom: 10px;
+    }
+
+    p.info {
+      text-align: center;
+      color: #555;
+    }
+
+    .alert {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .alert-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: #4a7c59;
+      outline: none;
+      box-shadow: 0 0 5px rgba(74, 124, 89, 0.5);
+    }
+
+    .btn-submit {
+      grid-column: span 2;
+      padding: 12px;
+      background-color: #4a7c59;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn-submit:hover {
+      background-color: #3c6547;
+      transform: scale(1.03);
+    }
+
+    .form-footer {
+      grid-column: span 2;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .form-footer a {
+      color: #4a7c59;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .form-footer a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      margin: 40px 0;
+      color: #fff;
+    }
+
+    .invalid-feedback {
+      color: red;
+      font-size: 0.85em;
+    }
+
+    @media (max-width: 768px) {
+      .btn-submit, .form-footer {
+        grid-column: span 1;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
-    </header>
-    
-    <nav>
-        <ul>
-            <li><a href="../index.php">Home</a></li>
-           
-            <li><a href="login.php">Patient Login</a></li>
-        </ul>
-    </nav>
-    
-    <div class="container">
-        <div class="form-container">
-            <h2>Pet Owner Registration</h2>
-            <p>Please fill in your details to create a patient account.</p>
-            <p class="alert alert-info">Note: After registration, you'll need to verify your email address before you can log in.</p>
-            
-            <?php 
-            if(!empty($success_message)){
-                echo '<div class="alert alert-success">' . $success_message . '</div>';
-            }
-            
-            if(!empty($email_setup_instructions)){
-                echo '<div class="alert alert-warning">' . $email_setup_instructions . '</div>';
-            }
-            ?>
-            
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="name" value="<?php echo $name; ?>" class="<?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $name_err; ?></span>
-                </div>    
-                
-                <div class="form-group">
-                    <label>Your Age</label>
-                    <input type="number" name="age" value="<?php echo $age; ?>" class="<?php echo (!empty($age_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $age_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Your Address</label>
-                    <textarea name="address" class="<?php echo (!empty($address_err)) ? 'is-invalid' : ''; ?>"><?php echo $address; ?></textarea>
-                    <span class="invalid-feedback"><?php echo $address_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Pet's Name</label>
-                    <input type="text" name="pet_name" value="<?php echo $pet_name; ?>" class="<?php echo (!empty($pet_name_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $pet_name_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Pet Type (e.g., Dog, Cat)</label>
-                    <input type="text" name="pet_type" value="<?php echo $pet_type; ?>" class="<?php echo (!empty($pet_type_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $pet_type_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" value="<?php echo $email; ?>" class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $email_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" name="confirm_password" class="<?php echo (!empty($confirm_password_err)) ? 'is-invalid' : ''; ?>">
-                    <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
-                </div>
-                
-                <div class="form-group">
-                    <input type="submit" class="btn btn-primary btn-block" value="Register">
-                </div>
-                
-                <p>Already have an account? <a href="login.php">Login here</a>.</p>
-            </form>
-        </div>
+<nav style="background-color: #4a7c59; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white;">
+    <div style="font-size: 1.5em; font-weight: bold;">
+        <a href="../index.php" style="text-decoration: none; color: white;">🐾 PawPoint</a>
     </div>
-    
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
-    </footer>
+    <div>
+        <a href="../index.php" style="margin-right: 20px; text-decoration: none; color: white;">Home</a>
+        <a href="login.php" style="margin-right: 20px; text-decoration: none; color: white;">Login</a>
+        <a href="register.php" style="text-decoration: none; color: white;">Sign Up</a>
+    </div>
+</nav>
+
+  <div class="register-container">
+  <div style="text-align: center;">
+  <img src="../images/PawPoint.png" alt="PawPoint Logo" style="width: 80px; height: 80px; margin-bottom: 10px;">
+</div>
+
+    <h2>Pet Owner Registration</h2>
+    <p class="info">Please fill in your details to create an account.<br><small>After registration, you'll need to verify your email before logging in.</small></p>
+
+    <?php 
+      if(!empty($success_message)) {
+          echo '<div class="alert alert-success">' . $success_message . '</div>';
+      }
+      if(!empty($email_setup_instructions)) {
+          echo '<div class="alert alert-warning">' . $email_setup_instructions . '</div>';
+      }
+    ?>
+
+    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" value="<?php echo $name; ?>" class="<?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $name_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Your Age</label>
+        <input type="number" name="age" value="<?php echo $age; ?>" class="<?php echo (!empty($age_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $age_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Address</label>
+        <textarea name="address" rows="2" class="<?php echo (!empty($address_err)) ? 'is-invalid' : ''; ?>"><?php echo $address; ?></textarea>
+        <span class="invalid-feedback"><?php echo $address_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Pet's Name</label>
+        <input type="text" name="pet_name" value="<?php echo $pet_name; ?>" class="<?php echo (!empty($pet_name_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $pet_name_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Pet Type (e.g., Dog, Cat)</label>
+        <input type="text" name="pet_type" value="<?php echo $pet_type; ?>" class="<?php echo (!empty($pet_type_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $pet_type_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" value="<?php echo $email; ?>" class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $email_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $password_err; ?></span>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" class="<?php echo (!empty($confirm_password_err)) ? 'is-invalid' : ''; ?>">
+        <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
+      </div>
+
+      <input type="submit" class="btn-submit" value="Register">
+
+      <div class="form-footer">
+        Already have an account? <a href="login.php">Login here</a>
+      </div>
+    </form>
+  </div>
+
+  <footer>
+    <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
+  </footer>
 </body>
-</html> 
+</html>

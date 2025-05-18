@@ -105,6 +105,10 @@ if($result && mysqli_num_rows($result) > 0){
         .admin-table tr:hover {
             background-color: #ddd;
         }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
         .action-btn {
             color: white;
             display: inline-block;
@@ -112,9 +116,13 @@ if($result && mysqli_num_rows($result) > 0){
             padding: 5px 10px;
             text-decoration: none;
             border-radius: 3px;
+            font-size: 0.8rem;
         }
         .edit-btn {
             background-color: #3498db;
+        }
+        .btn-info {
+            background-color: #17a2b8;
         }
         .delete-btn {
             background-color: #e74c3c;
@@ -176,8 +184,11 @@ if($result && mysqli_num_rows($result) > 0){
                             <td><?php echo $patient['age']; ?></td>
                             <td><?php echo htmlspecialchars($patient['email']); ?></td>
                             <td>
-                                <a href="edit_patient.php?id=<?php echo $patient['id']; ?>" class="action-btn edit-btn">Edit</a>
-                                <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $patient['id']; ?>, '<?php echo addslashes(htmlspecialchars($patient['name'])); ?>')" class="action-btn delete-btn">Delete</a>
+                                <div class="action-buttons">
+                                    <a href="view_patient.php?id=<?php echo $patient['id']; ?>" class="action-btn btn-info">View</a>
+                                    <a href="edit_patient.php?id=<?php echo $patient['id']; ?>" class="action-btn edit-btn">Edit</a>
+                                    <a href="javascript:void(0);" onclick="confirmDelete(<?php echo $patient['id']; ?>, '<?php echo addslashes(htmlspecialchars($patient['name'])); ?>')" class="action-btn delete-btn">Delete</a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -200,4 +211,4 @@ if($result && mysqli_num_rows($result) > 0){
         }
     </script>
 </body>
-</html> 
+</html>

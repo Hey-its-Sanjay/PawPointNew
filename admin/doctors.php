@@ -46,9 +46,9 @@ if(isset($_GET['action']) && isset($_GET['id'])) {
                     
                     mysqli_stmt_close($check_stmt);
                 }
-                
-                if($has_appointments) {
-                    $action_message = "Cannot delete doctor with existing appointments. Please remove appointments first.";
+                  if($has_appointments) {
+                    $action_message = "Cannot delete doctor with existing appointments. Please remove appointments first or deactivate the account instead.";
+                    $action_type = "danger";
                     $action_type = "warning";
                 } else {
                     // Delete the doctor

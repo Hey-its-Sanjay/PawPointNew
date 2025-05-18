@@ -11,11 +11,29 @@ if(isset($_GET["token"]) && !empty(trim($_GET["token"]))) {
     $token = trim($_GET["token"]);
     
     // Verify token
-    if(verify_patient_email($token)) {
-        $verification_success = true;
-        $verification_message = "Your email has been successfully verified. You can now <a href='login.php'>login</a> to your account.";
-    } else {
-        $verification_message = "Invalid or expired verification link. Please request a new verification email or contact support.";
+    $result = verify_patient_email($token);
+    
+    switch($result) {
+        case "success":
+            $verification_success = true;
+            $verification_message = "Your email has been successfully verified. You can now <a href='login.php'>login</a> to your account.";
+            break;
+            
+        case "already_verified":
+            $verification_success = true;
+            $verification_message = "This email is already verified. You can <a href='login.php'>login</a> to your account.";
+            break;
+            
+        case "expired":
+            $verification_message = "This verification link has expired. Please <a href='resend_verification.php'>request a new verification email</a>.";
+            break;
+            
+        case "invalid":
+            $verification_message = "Invalid verification link. Please make sure you're using the most recent verification email we sent you.";
+            break;
+            
+        default:
+            $verification_message = "An error occurred during verification. Please try again or contact support.";
     }
 } else {
     $verification_message = "No verification token provided. Please use the link sent to your email.";
