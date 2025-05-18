@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PawPoint Veterinary Care System
 
 PawPoint is a web-based application for managing veterinary care services, including doctor and patient management, appointment scheduling, and administrative controls.
@@ -85,3 +86,7 @@ For the email verification system to work properly, ensure your PHP mail functio
 ## Technical Note
 
 If you have existing doctor accounts in your database, they will be automatically set to 'approved' status when the schema update is applied. 
+=======
+# PawPointNew
+new repo of pawpoint
+>>>>>>> 7e1d236f4ad93db773a7d1613b19e700db18baa3
