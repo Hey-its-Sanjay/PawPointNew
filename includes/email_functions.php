@@ -3,6 +3,7 @@ error_log('Loading email_functions.php');
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
 require_once __DIR__ . '/../vendor/PHPMailer/src/PHPMailer.php';
 require_once __DIR__ . '/../vendor/PHPMailer/src/SMTP.php';
@@ -14,28 +15,35 @@ require_once __DIR__ . '/../vendor/PHPMailer/src/Exception.php';
 function pawpoint_send_email($to, $to_name, $subject, $body_html) {
     $mail = new PHPMailer(true);
     try {
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com'; // Change to your SMTP server if needed
-        $mail->SMTPAuth = true;
-        $mail->Username = 'Shresthasanjay087@gmail.com'; // CHANGE THIS
-        $mail->Password = 'vthg kkgm cqqs qtnc';    // CHANGE THIS (App Password for Gmail)
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
+        // Server settings
+        $mail->SMTPDebug = SMTP::DEBUG_OFF;    // Enable verbose debug output if needed
+        $mail->isSMTP();                       // Send using SMTP
+        $mail->Host       = 'smtp.gmail.com';  // Set the SMTP server to send through
+        $mail->SMTPAuth   = true;              // Enable SMTP authentication
+        $mail->Username   = 'Shresthasanjay087@gmail.com'; // SMTP username
+        $mail->Password   = 'vthg kkgm cqqs qtnc';        // SMTP password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Enable TLS encryption
+        $mail->Port       = 587;               // TCP port to connect to
 
+        // Recipients
         $mail->setFrom('Shresthasanjay087@gmail.com', 'PawPoint');
         $mail->addAddress($to, $to_name);
 
+        // Content
         $mail->isHTML(true);
         $mail->Subject = $subject;
-        $mail->Body = $body_html;
+        $mail->Body    = $body_html;
+        $mail->AltBody = strip_tags(str_replace(['<br>', '</p>'], ["\n", "\n\n"], $body_html));
 
         $mail->send();
+        error_log("Email sent successfully to: " . $to);
         return true;
     } catch (Exception $e) {
-        error_log('PHPMailer Error: ' . $mail->ErrorInfo);
+        error_log("Email sending failed. Mailer Error: {$mail->ErrorInfo}");
         return false;
     }
 }
+
 /**
  * Send appointment acceptance email to patient
  */
@@ -76,86 +84,26 @@ function send_appointment_reject_email($patient_email, $patient_name, $appointme
  * 
  * @param string $recipient_email The email address to send to
  * @param string $reset_link The password reset link
+ * @param string $user_type The type of user ('patient' or 'doctor')
+ * @param string $name The name of the recipient
  * @return bool Whether the email was sent successfully
  */
-function send_password_reset_email($recipient_email, $reset_link) {
-    // Set email headers
-    $headers = "MIME-Version: 1.0" . "\r\n";
-    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    $headers .= "From: PawPoint <noreply@pawpoint.com>" . "\r\n";
-    
-    // Email subject
+function send_password_reset_email($recipient_email, $reset_link, $user_type, $name) {
     $subject = "Password Reset Request - PawPoint";
     
-    // Email body
-    $message = '
-    <html>
-    <head>
-        <title>Reset Your Password</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-            }
-            .container {
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-            }
-            .header {
-                background-color: #4a7c59;
-                color: white;
-                padding: 15px;
-                text-align: center;
-                border-radius: 5px 5px 0 0;
-            }
-            .content {
-                padding: 20px;
-            }
-            .button {
-                display: inline-block;
-                background-color: #4a7c59;
-                color: white;
-                padding: 12px 25px;
-                text-decoration: none;
-                border-radius: 4px;
-                margin: 20px 0;
-            }
-            .footer {
-                text-align: center;
-                margin-top: 20px;
-                font-size: 12px;
-                color: #777;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h2>Password Reset Request</h2>
-            </div>
-            <div class="content">
-                <p>Hello,</p>
-                <p>We received a request to reset your password for your PawPoint account. Click the button below to reset your password. If you did not request a password reset, you can ignore this email and your password will remain unchanged.</p>
-                <p style="text-align: center;">
-                    <a href="' . $reset_link . '" class="button">Reset Password</a>
-                </p>
-                <p>Or copy and paste the following URL into your browser:</p>
-                <p>' . $reset_link . '</p>
-                <p>This password reset link is only valid for 1 hour.</p>
-                <p>Thank you,<br>The PawPoint Team</p>
-            </div>
-            <div class="footer">
-                <p>This is an automated email. Please do not reply to this message.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    ';
-    
-    // Send email
-    return mail($recipient_email, $subject, $message, $headers);
+    $body = '<html><head><title>Reset Your Password</title></head><body>' .
+        '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">' .
+        '<h2 style="color: #4a7c59;">Password Reset Request</h2>' .
+        '<p>Dear ' . htmlspecialchars($name) . ',</p>' .
+        '<p>We received a request to reset your password for your ' . ucfirst($user_type) . ' account at PawPoint.</p>' .
+        '<p>To reset your password, click the button below:</p>' .
+        '<p style="text-align: center;">' .
+        '<a href="' . $reset_link . '" style="display: inline-block; background-color: #4a7c59; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px;">Reset Password</a>' .
+        '</p>' .
+        '<p>If you did not request a password reset, please ignore this email or contact us if you have concerns.</p>' .
+        '<p>This link will expire in 1 hour for security reasons.</p>' .
+        '<p>Thank you,<br>PawPoint Team</p>' .
+        '</div></body></html>';
+
+    return pawpoint_send_email($recipient_email, $name, $subject, $body);
 }

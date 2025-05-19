@@ -102,9 +102,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - VetCare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a2e0e6ad65.js" crossorigin="anonymous"></script>
+    <title>Patient Login - PawPoint</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         * {
             box-sizing: border-box;
@@ -146,9 +146,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             margin-bottom: 20px;
             text-align: left;
             position: relative;
-        }
-
-        .form-group i {
+        }        .form-group i:not(.password-toggle i) {
             position: absolute;
             top: 12px;
             left: 10px;
@@ -161,6 +159,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 15px;
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: #31725b;
+        }
+        
+        .password-toggle:hover {
+            color: #285c4c;
+        }
+        
+        .password-field input {
+            padding-right: 35px !important;
         }
 
         .form-group input:focus {
@@ -215,6 +237,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             font-size: 14px;
         }
 
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+        
+        .password-toggle:hover {
+            color: #4a5568;
+        }
+
         @media (max-width: 480px) {
             .login-container {
                 margin: 40px 20px;
@@ -249,25 +290,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group">
-                <i class="fas fa-envelope"></i>
-                <input type="email" name="email" id="email"
-                    class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>"
-                    placeholder="Email Address" value="<?php echo $email; ?>">
-                <?php if (!empty($email_err)): ?>
-                    <div class="error"> <?php echo $email_err; ?> </div>
+                <label>Email</label>
+                <input type="email" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
+                <?php if(!empty($email_err)): ?>
+                    <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                <?php endif; ?>
+            </div>    
+              <div class="form-group">
+                <div class="password-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" name="password" placeholder="Enter your password" 
+                           class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" 
+                           id="passwordField">
+                    <button type="button" class="password-toggle" onclick="togglePassword('passwordField')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <?php if(!empty($password_err)): ?>
+                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
                 <?php endif; ?>
             </div>
-
-            <div class="form-group">
-                <i class="fas fa-lock"></i>
-                <input type="password" name="password" id="password"
-                    class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>"
-                    placeholder="Password">
-                <?php if (!empty($password_err)): ?>
-                    <div class="error"> <?php echo $password_err; ?> </div>
-                <?php endif; ?>
-            </div>
-
+            
             <button type="submit" class="btn-primary">Login</button>
 
             <div class="register-link">
@@ -276,9 +319,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             </div>
         </form>
     </div>
-
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> VetCare. All rights reserved.</p>
-    </footer>
+    
+    <script>
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleButton = passwordField.nextElementSibling;
+            const icon = toggleButton.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

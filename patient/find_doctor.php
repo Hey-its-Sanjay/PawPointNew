@@ -38,23 +38,25 @@ if($_SERVER["REQUEST_METHOD"] == "GET") {
 }
 
 // Build the SQL query based on search and filter parameters
-$sql = "SELECT id, name, age, speciality, profile_picture, bio, phone 
-        FROM doctors 
-        WHERE status = 'approved'";
+$sql = "SELECT d.id, d.name, d.age, d.speciality, d.profile_picture, d.bio, d.phone,
+        (SELECT AVG(rating) FROM reviews r WHERE r.doctor_id = d.id AND r.status = 'active') as average_rating,
+        (SELECT COUNT(*) FROM reviews r WHERE r.doctor_id = d.id AND r.status = 'active') as review_count
+        FROM doctors d
+        WHERE d.status = 'approved'";
 
 if(!empty($search_query)) {
-    $sql .= " AND (name LIKE ? OR speciality LIKE ? OR bio LIKE ?)";
+    $sql .= " AND (d.name LIKE ? OR d.speciality LIKE ? OR d.bio LIKE ?)";
 }
 
 if(!empty($speciality_filter)) {
     if(!empty($search_query)) {
-        $sql .= " AND speciality = ?";
+        $sql .= " AND d.speciality = ?";
     } else {
-        $sql .= " AND speciality = ?";
+        $sql .= " AND d.speciality = ?";
     }
 }
 
-$sql .= " ORDER BY name ASC";
+$sql .= " ORDER BY d.name ASC";
 
 // Prepare and execute the query
 if($stmt = mysqli_prepare($conn, $sql)) {
@@ -93,6 +95,7 @@ if($stmt = mysqli_prepare($conn, $sql)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Find a Doctor - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .search-container {
             margin-bottom: 30px;
@@ -134,83 +137,92 @@ if($stmt = mysqli_prepare($conn, $sql)) {
         }
         
         .doctor-card {
+            display: flex;
+            padding: 20px;
+            margin-bottom: 20px;
             background-color: #fff;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.2s;
         }
         
         .doctor-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .doctor-header {
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #eee;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .doctor-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+            width: 150px;
+            height: 150px;
             object-fit: cover;
-            border: 3px solid #4a7c59;
-            margin-right: 15px;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+        
+        .doctor-info {
+            flex: 1;
+        }
+        
+        .doctor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
         }
         
         .doctor-name {
-            font-size: 1.2rem;
-            margin: 0 0 5px;
-        }
-        
-        .doctor-speciality {
+            font-size: 1.4em;
             color: #4a7c59;
-            font-weight: 600;
             margin: 0;
         }
         
-        .doctor-body {
-            padding: 15px;
+        .doctor-rating {
+            color: #ffd700;
+            font-size: 1.1em;
         }
         
-        .doctor-detail {
-            margin-bottom: 8px;
+        .doctor-speciality {
+            color: #666;
+            margin: 5px 0;
         }
         
         .doctor-bio {
-            margin-top: 12px;
-            color: #666;
-            font-size: 0.9rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            margin: 10px 0;
+            color: #333;
+            line-height: 1.6;
         }
         
-        .doctor-footer {
-            background-color: #f9f9f9;
-            padding: 12px 15px;
-            text-align: center;
+        .doctor-actions {
+            margin-top: 15px;
+        }
+        
+        .btn-view-profile {
+            background-color: #4a7c59;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
         }
         
         .btn-book {
-            background-color: #4a7c59;
+            background-color: #31725b;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
         }
         
-        .btn-book:hover {
-            background-color: #3e6b4a;
+        .btn-view-profile:hover, .btn-book:hover {
+            opacity: 0.9;
         }
         
-        .no-results {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
+        .review-count {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 5px;
         }
         
         @media (max-width: 768px) {
@@ -237,6 +249,7 @@ if($stmt = mysqli_prepare($conn, $sql)) {
             <li><a href="find_doctor.php" class="active">Find Doctor</a></li>
             <li><a href="appointments.php">My Appointments</a></li>
             <li><a href="book_appointment.php">Book Appointment</a></li>
+             <li><a href="products.php">Products</a></li>
             <li><a href="logout.php">Logout</a></li>
         </ul>
     </nav>
@@ -261,51 +274,66 @@ if($stmt = mysqli_prepare($conn, $sql)) {
             </form>
         </div>
         
-        <?php if(count($doctors) == 0): ?>
-            <div class="no-results">
-                <p>No doctors found. Please try a different search or filter.</p>
-            </div>
-        <?php else: ?>
-            <div class="doctors-container">
-                <?php foreach($doctors as $doctor): ?>
+        <div class="doctors-list">
+            <?php if (empty($doctors)): ?>
+                <p>No doctors found matching your criteria.</p>
+            <?php else: ?>
+                <?php foreach ($doctors as $doctor): ?>
                     <div class="doctor-card">
-                        <div class="doctor-header">
-                            <?php 
-                                $profile_img = $doctor['profile_picture'];
-                                if(empty($profile_img) || !file_exists("../uploads/profile_pictures/" . $profile_img)) {
-                                    $profile_img = "default.jpg";
-                                }
-                            ?>
-                            <img src="../uploads/profile_pictures/<?php echo htmlspecialchars($profile_img); ?>" alt="Dr. <?php echo htmlspecialchars($doctor['name']); ?>" class="doctor-image">
-                            <div>
+                        <img src="../uploads/profile_pictures/<?php 
+                            echo !empty($doctor['profile_picture']) ? htmlspecialchars($doctor['profile_picture']) : 'default.jpg'; 
+                            ?>" alt="Dr. <?php echo htmlspecialchars($doctor['name']); ?>" class="doctor-image">
+                        
+                        <div class="doctor-info">
+                            <div class="doctor-header">
                                 <h3 class="doctor-name">Dr. <?php echo htmlspecialchars($doctor['name']); ?></h3>
-                                <p class="doctor-speciality"><?php echo htmlspecialchars($doctor['speciality']); ?></p>
+                                <div class="doctor-rating">
+                                    <?php 
+                                    $rating = round($doctor['average_rating'], 1);
+                                    for ($i = 1; $i <= 5; $i++) {
+                                        if ($i <= $rating) {
+                                            echo '<i class="fas fa-star"></i>';
+                                        } elseif ($i - 0.5 <= $rating) {
+                                            echo '<i class="fas fa-star-half-alt"></i>';
+                                        } else {
+                                            echo '<i class="far fa-star"></i>';
+                                        }
+                                    }
+                                    ?>
+                                    <span class="review-count">
+                                        <?php 
+                                        echo $rating > 0 ? number_format($rating, 1) : 'No rating'; 
+                                        ?> 
+                                        (<?php echo $doctor['review_count']; ?> reviews)
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="doctor-body">
-                            <?php if(!empty($doctor['phone'])): ?>
-                                <div class="doctor-detail">
-                                    <strong>Phone:</strong> <?php echo htmlspecialchars($doctor['phone']); ?>
+                            
+                            <div class="doctor-speciality">
+                                <?php echo htmlspecialchars($doctor['speciality']); ?>
+                            </div>
+                            
+                            <?php if (!empty($doctor['bio'])): ?>
+                                <div class="doctor-bio">
+                                    <?php echo nl2br(htmlspecialchars($doctor['bio'])); ?>
                                 </div>
                             <?php endif; ?>
                             
-                            <?php if(!empty($doctor['bio'])): ?>
-                                <div class="doctor-bio">
-                                    <?php echo htmlspecialchars($doctor['bio']); ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="doctor-footer">
-                            <a href="book_appointment.php?doctor_id=<?php echo $doctor['id']; ?>" class="btn btn-book">Book Appointment</a>
+                            <div class="doctor-actions">
+                                <a href="view_doctor.php?id=<?php echo $doctor['id']; ?>" class="btn-view-profile">
+                                    View Profile & Reviews
+                                </a>
+                                <a href="book_appointment.php?doctor_id=<?php echo $doctor['id']; ?>" class="btn-book">
+                                    Book Appointment
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
+        </div>
     </div>
     
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
-    </footer>
+    <?php include "../includes/footer.php"; ?>
 </body>
-</html> 
+</html>

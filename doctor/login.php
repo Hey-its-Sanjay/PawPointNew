@@ -109,6 +109,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Login - PawPoint</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -250,6 +252,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             color: #555;
             margin-top: 60px;
         }
+
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+        
+        .password-toggle:hover {
+            color: #4a5568;
+        }
     </style>
 </head>
 <body>
@@ -280,26 +301,52 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" value="<?php echo $email; ?>" class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>">
-                <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                <input type="email" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $email; ?>">
+                <?php if(!empty($email_err)): ?>
+                    <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                <?php endif; ?>
             </div>    
-
+            
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
-                <span class="invalid-feedback"><?php echo $password_err; ?></span>
+                <div class="password-field">
+                    <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" id="passwordField">
+                    <button type="button" class="password-toggle" onclick="togglePassword('passwordField')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <?php if(!empty($password_err)): ?>
+                    <span class="invalid-feedback"><?php echo $password_err; ?></span>
+                <?php endif; ?>
             </div>
-
-            <div class="form-group">
-                <input type="submit" class="btn-primary" value="Login">
+              <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Login">
             </div>
-
             <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
+            <p>Forgot your password? <a href="forgot-password.php">Reset it here</a>.</p>
         </form>
     </div>
 
     <footer>
         <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
     </footer>
+
+    <script>
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleButton = passwordField.nextElementSibling;
+            const icon = toggleButton.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

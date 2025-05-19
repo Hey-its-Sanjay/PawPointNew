@@ -312,6 +312,12 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                         </a>
                     </li>
                     <li>
+                        <a href="manage_products.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_products.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-box"></i>
+                            <span>Products</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="reports.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i>
                             <span>Reports</span>
@@ -333,6 +339,21 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                         <a href="logout.php">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Logout</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="manage_doctors.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_doctors.php' ? 'class="active"' : ''; ?>>
+                            <i class="fas fa-user-md"></i> Manage Doctors
+                        </a>
+                    </li>
+                    <li>
+                        <a href="manage_patients.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_patients.php' ? 'class="active"' : ''; ?>>
+                            <i class="fas fa-users"></i> Manage Patients
+                        </a>
+                    </li>
+                    <li>
+                        <a href="manage_reviews.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_reviews.php' ? 'class="active"' : ''; ?>>
+                            <i class="fas fa-star"></i> Manage Reviews
                         </a>
                     </li>
                 </ul>
@@ -378,4 +399,4 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                 <?php endif; ?>
             </div>
             
-            <!-- Main content starts here --> 
+            <!-- Main content starts here -->

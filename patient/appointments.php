@@ -8,7 +8,9 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_S
     exit;
 }
 
-// Include config file
+// Include required files
+require_once "../includes/config.php";
+require_once "../includes/db_connect.php";
 require_once "../includes/functions.php";
 
 // Define variables
@@ -45,12 +47,55 @@ if(isset($_GET['action']) && $_GET['action'] == 'cancel' && isset($_GET['id'])) 
     }
 }
 
-// Get patient's appointments
+// Check for review submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
+    $appointment_id = intval($_POST['appointment_id']);
+    $doctor_id = intval($_POST['doctor_id']);
+    $rating = intval($_POST['rating']);
+    $review_text = trim($_POST['review_text']);
+    
+    // Validate inputs
+    if ($rating < 1 || $rating > 5) {
+        $error_message = "Invalid rating value.";
+    } elseif (empty($review_text)) {
+        $error_message = "Please enter your review.";
+    } else {
+        // Check if this appointment has already been reviewed
+        $check_sql = "SELECT id FROM reviews WHERE appointment_id = ?";
+        $check_stmt = mysqli_prepare($conn, $check_sql);
+        mysqli_stmt_bind_param($check_stmt, "i", $appointment_id);
+        mysqli_stmt_execute($check_stmt);
+        mysqli_stmt_store_result($check_stmt);
+        
+        if (mysqli_stmt_num_rows($check_stmt) > 0) {
+            $error_message = "You have already reviewed this appointment.";
+        } else {
+            // Insert the review
+            $insert_sql = "INSERT INTO reviews (doctor_id, patient_id, appointment_id, rating, review_text) 
+                          VALUES (?, ?, ?, ?, ?)";
+            if ($insert_stmt = mysqli_prepare($conn, $insert_sql)) {
+                mysqli_stmt_bind_param($insert_stmt, "iiiis", $doctor_id, $_SESSION["patient_id"], 
+                                     $appointment_id, $rating, $review_text);
+                if (mysqli_stmt_execute($insert_stmt)) {
+                    $success_message = "Your review has been submitted successfully.";
+                } else {
+                    $error_message = "Error submitting review. Please try again.";
+                }
+                mysqli_stmt_close($insert_stmt);
+            }
+        }
+        mysqli_stmt_close($check_stmt);
+    }
+}
+
+// Get patient's appointments with review information
 $appointments = [];
 $sql = "SELECT a.id, a.appointment_date, a.appointment_time, a.reason, a.status, 
-        d.name as doctor_name, d.speciality as doctor_speciality
+        d.id as doctor_id, d.name as doctor_name, d.speciality as doctor_speciality,
+        r.id as review_id, r.rating, r.review_text
         FROM appointments a
         JOIN doctors d ON a.doctor_id = d.id
+        LEFT JOIN reviews r ON a.id = r.appointment_id AND r.status = 'active'
         WHERE a.patient_id = ?
         ORDER BY a.appointment_date DESC, a.appointment_time ASC";
 
@@ -66,7 +111,6 @@ if($stmt = mysqli_prepare($conn, $sql)) {
     mysqli_stmt_close($stmt);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,151 +118,148 @@ if($stmt = mysqli_prepare($conn, $sql)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Appointments - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        .table {
-            border-collapse: collapse;
-            margin: 25px 0;
+        .table { border-collapse: collapse; margin: 25px 0; width: 100%; }
+        .table th, .table td { border: 1px solid #ddd; padding: 12px 15px; text-align: left; }
+        .table th { background-color: #4a7c59; color: white; font-weight: bold; }
+        .table tr:nth-child(even) { background-color: #f5f5f5; }
+        .table tr:hover { background-color: #f1f1f1; }
+        
+        .status-pending { background-color: #F39C12; color: white; }
+        .status-confirmed { background-color: #27AE60; color: white; }
+        .status-completed { background-color: #3498DB; color: white; }
+        .status-cancelled { background-color: #E74C3C; color: white; }
+        
+        .status-pending, .status-confirmed, .status-completed, .status-cancelled {
+            border-radius: 4px;
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+        }
+        
+        .btn-danger { background-color: #E74C3C; }
+        .btn-danger:hover { background-color: #C0392B; }
+        
+        .rating { display: inline-block; }
+        .rating input { display: none; }
+        .rating label {
+            float: right;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 24px;
+        }
+        .rating label:before { content: '\2605'; }
+        .rating input:checked ~ label { color: #ffd700; }
+        .rating:not(:checked) label:hover,
+        .rating:not(:checked) label:hover ~ label { color: #ffd700; }
+        
+        .review-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
-        .table th, .table td {
+        
+        .review-modal-content {
+            background-color: #fff;
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .review-form textarea {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
             border: 1px solid #ddd;
-            padding: 12px 15px;
-            text-align: left;
+            border-radius: 4px;
         }
-        .table th {
+        
+        .reviewed-badge {
             background-color: #4a7c59;
             color: white;
-            font-weight: bold;
-        }
-        .table tr:nth-child(even) {
-            background-color: #f5f5f5;
-        }
-        .table tr:hover {
-            background-color: #f1f1f1;
-        }
-        .status-pending {
-            background-color: #F39C12;
+            padding: 4px 8px;
             border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .status-confirmed {
-            background-color: #27AE60;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .status-completed {
-            background-color: #3498DB;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .status-cancelled {
-            background-color: #E74C3C;
-            border-radius: 4px;
-            color: white;
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-        }
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 0.8rem;
-        }
-        .btn-cancel {
-            background-color: #E74C3C;
-        }
-        .btn-cancel:hover {
-            background-color: #C0392B;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 10px;
         }
     </style>
 </head>
-<body>
-    <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
-    </header>
-    
-    <nav>
-        <ul>
-            <li><a href="dashboard.php">Dashboard</a></li>
-            <li><a href="profile.php">My Profile</a></li>
-            <li><a href="find_doctor.php">Find Doctor</a></li>
-            <li><a href="appointments.php">My Appointments</a></li>
-            <li><a href="logout.php">Logout</a></li>
-        </ul>
-    </nav>
+<body>    <?php include "header.php"; ?>
     
     <div class="container">
         <h2>My Appointments</h2>
         
-        <?php 
-            if(!empty($success_message)) {
-                echo '<div class="alert alert-success">' . $success_message . '</div>';
-            }
-            if(!empty($error_message)) {
-                echo '<div class="alert alert-error">' . $error_message . '</div>';
-            }
-        ?>
+        <?php if (!empty($success_message)): ?>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+        <?php endif; ?>
+        
+        <?php if (!empty($error_message)): ?>
+            <div class="alert alert-error"><?php echo htmlspecialchars($error_message); ?></div>
+        <?php endif; ?>
         
         <div class="form-container">
-            <?php if(count($appointments) > 0): ?>
+            <?php if (count($appointments) > 0): ?>
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Doctor</th>
                             <th>Date</th>
                             <th>Time</th>
+                            <th>Doctor</th>
                             <th>Reason</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($appointments as $appointment): ?>
+                        <?php foreach ($appointments as $appointment): ?>
                             <tr>
-                                <td>Dr. <?= htmlspecialchars($appointment['doctor_name']) ?><br>
-                                    <small><?= htmlspecialchars($appointment['doctor_speciality']) ?></small>
-                                </td>
-                                <td><?= date('M d, Y', strtotime($appointment['appointment_date'])) ?></td>
-                                <td><?= date('h:i A', strtotime($appointment['appointment_time'])) ?></td>
-                                <td><?= htmlspecialchars($appointment['reason']) ?></td>
+                                <td><?php echo htmlspecialchars($appointment['appointment_date']); ?></td>
+                                <td><?php echo htmlspecialchars($appointment['appointment_time']); ?></td>
                                 <td>
-                                    <?php if($appointment['status'] == 'pending'): ?>
-                                        <span class="status-pending">Pending</span>
-                                    <?php elseif($appointment['status'] == 'confirmed'): ?>
-                                        <span class="status-confirmed">Confirmed</span>
-                                    <?php elseif($appointment['status'] == 'completed'): ?>
-                                        <span class="status-completed">Completed</span>
-                                    <?php elseif($appointment['status'] == 'cancelled'): ?>
-                                        <span class="status-cancelled">Cancelled</span>
-                                    <?php endif; ?>
+                                    Dr. <?php echo htmlspecialchars($appointment['doctor_name']); ?>
+                                    <br>
+                                    <small><?php echo htmlspecialchars($appointment['doctor_speciality']); ?></small>
+                                </td>
+                                <td><?php echo htmlspecialchars($appointment['reason']); ?></td>
+                                <td>
+                                    <span class="status-<?php echo strtolower($appointment['status']); ?>">
+                                        <?php echo ucfirst($appointment['status']); ?>
+                                    </span>
                                 </td>
                                 <td>
-                                    <?php if($appointment['status'] == 'pending' || $appointment['status'] == 'confirmed'): ?>
-                                        <a href="appointments.php?action=cancel&id=<?= $appointment['id'] ?>" 
-                                           class="btn btn-cancel btn-small"
+                                    <?php if ($appointment['status'] === 'completed'): ?>
+                                        <?php if (empty($appointment['review_id'])): ?>
+                                            <button type="button" class="btn btn-primary" onclick="openReviewModal(<?php 
+                                                echo $appointment['id']; ?>, <?php 
+                                                echo $appointment['doctor_id']; ?>, '<?php 
+                                                echo htmlspecialchars($appointment['doctor_name'], ENT_QUOTES); ?>')">
+                                                Leave Review
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="reviewed-badge">
+                                                <i class="fas fa-check"></i> Reviewed
+                                            </span>
+                                        <?php endif; ?>
+                                    <?php elseif ($appointment['status'] === 'pending'): ?>
+                                        <a href="?action=cancel&id=<?php echo $appointment['id']; ?>" 
+                                           class="btn btn-danger" 
                                            onclick="return confirm('Are you sure you want to cancel this appointment?')">
                                             Cancel
                                         </a>
@@ -236,8 +277,57 @@ if($stmt = mysqli_prepare($conn, $sql)) {
         </div>
     </div>
     
-    <footer>
-        <p>&copy; <?php echo date("Y"); ?> PawPoint. All rights reserved.</p>
-    </footer>
+    <!-- Review Modal -->
+    <div id="reviewModal" class="review-modal">
+        <div class="review-modal-content">
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+            <h3>Review Appointment</h3>
+            <form class="review-form" method="POST">
+                <input type="hidden" name="appointment_id" id="appointment_id">
+                <input type="hidden" name="doctor_id" id="doctor_id">
+                
+                <p>Doctor: <span id="doctor_name"></span></p>
+                
+                <div class="rating">
+                    <input type="radio" id="star5" name="rating" value="5" required>
+                    <label for="star5"></label>
+                    <input type="radio" id="star4" name="rating" value="4">
+                    <label for="star4"></label>
+                    <input type="radio" id="star3" name="rating" value="3">
+                    <label for="star3"></label>
+                    <input type="radio" id="star2" name="rating" value="2">
+                    <label for="star2"></label>
+                    <input type="radio" id="star1" name="rating" value="1">
+                    <label for="star1"></label>
+                </div>
+                
+                <textarea name="review_text" placeholder="Write your review here..." required></textarea>
+                
+                <button type="submit" name="submit_review" class="btn btn-primary">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openReviewModal(appointmentId, doctorId, doctorName) {
+            document.getElementById('reviewModal').style.display = 'block';
+            document.getElementById('appointment_id').value = appointmentId;
+            document.getElementById('doctor_id').value = doctorId;
+            document.getElementById('doctor_name').textContent = 'Dr. ' + doctorName;
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('reviewModal')) {
+                closeReviewModal();
+            }
+        }
+    </script>
+
+    <?php include "../includes/footer.php"; ?>
 </body>
-</html> 
+</html>

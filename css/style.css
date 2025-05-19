@@ -208,6 +208,30 @@ footer {
     margin-top: 40px;
 }
 
+/* Cart Badge */
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 18px;
+    text-align: center;
+}
+
+.nav-menu li a {
+    position: relative;
+    display: inline-block;
+}
+
+.nav-menu li {
+    position: relative;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .container {
@@ -222,4 +246,4 @@ footer {
     nav li {
         margin: 5px 0;
     }
-} 
+}

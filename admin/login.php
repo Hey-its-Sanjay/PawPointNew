@@ -90,11 +90,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
  
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+<head>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - PawPoint</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -187,9 +187,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        
-        .btn-primary:hover {
+          .btn-primary:hover {
             background-color: #3182ce;
+        }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+        
+        .password-toggle:hover {
+            color: #4a5568;
         }
         
         .invalid-feedback {
@@ -197,9 +215,40 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             font-size: 14px;
             margin-top: 5px;
         }
+        
+        .password-field {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        }
+        
+        .password-toggle:hover {
+            color: #4a5568;
+        }
     </style>
 </head>
 <body>
+    <header>
+        <h1>🐾 PawPoint</h1>
+        <p>Your Pet's Healthcare Companion</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="../index.php">Home</a></li>
+            <li><a href="../doctor/login.php">Doctor Login</a></li>
+            <li><a href="../patient/login.php">Patient Login</a></li>
+        </ul>
+    </nav>
     <div class="login-container">
         <div class="login-logo">
             <img src="../images/pawpoint.png" alt="PawPoint Logo">
@@ -225,7 +274,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+                <div class="password-field">
+                    <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" id="passwordField">
+                    <button type="button" class="password-toggle" onclick="togglePassword('passwordField')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
                 <?php if(!empty($password_err)): ?>
                     <span class="invalid-feedback"><?php echo $password_err; ?></span>
                 <?php endif; ?>
@@ -236,5 +290,23 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             </div>
         </form>
     </div>
+    
+    <script>
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleButton = passwordField.nextElementSibling;
+            const icon = toggleButton.querySelector('i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
-</html> 
+</html>

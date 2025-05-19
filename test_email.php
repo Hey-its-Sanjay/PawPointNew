@@ -18,4 +18,18 @@ $result = send_appointment_accept_email(
     'Dr. Test'
 );
 var_dump($result);
+
+// Test sending an email
+$result = pawpoint_send_email(
+    'Shresthasanjay087@gmail.com',  // Replace with your test email
+    'Test User',
+    'Test Email from PawPoint',
+    '<h1>Test Email</h1><p>This is a test email from PawPoint system.</p>'
+);
+
+if ($result) {
+    echo "Test email sent successfully!";
+} else {
+    echo "Failed to send test email. Check error logs for details.";
+}
 ?>

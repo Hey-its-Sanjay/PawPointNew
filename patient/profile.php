@@ -281,6 +281,7 @@ if($stmt = mysqli_prepare($conn, $sql)){
             <li><a href="profile.php" class="active">My Profile</a></li>
             <li><a href="appointments.php">My Appointments</a></li>
             <li><a href="book_appointment.php">Book Appointment</a></li>
+             <li><a href="products.php">Products</a></li>
             <li><a href="logout.php">Logout</a></li>
         </ul>
     </nav>

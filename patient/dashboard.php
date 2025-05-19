@@ -230,6 +230,7 @@ if($doctor_result) {
             <li><a href="profile.php">My Profile</a></li>
             <li><a href="find_doctor.php">Find Doctor</a></li>
             <li><a href="appointments.php">My Appointments</a></li>
+            <li><a href="products.php">Products</a></li>
             <li><a href="logout.php">Logout</a></li>
         </ul>
     </nav>

@@ -453,4 +453,21 @@ function get_all_settings($public_only = false) {
     
     return $settings;
 }
+
+/**
+ * Get the site URL that works on both mobile and PC
+ * 
+ * @return string The site URL
+ */
+function get_site_url() {
+    // Get local IP for mobile access
+    $host = $_SERVER['SERVER_ADDR'];
+    if ($host === '::1' || $host === '127.0.0.1') {
+        // If localhost, get the actual local IP
+        $host = gethostbyname(gethostname());
+    }
+    
+    $protocol = "http"; // Use http for local network
+    return "{$protocol}://{$host}/Vetcare/pawpoint";
+}
 ?>
