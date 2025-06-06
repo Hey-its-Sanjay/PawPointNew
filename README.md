@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # PawPoint Veterinary Care System
 
 PawPoint is a web-based application for managing veterinary care services, including doctor and patient management, appointment scheduling, and administrative controls.
@@ -90,3 +91,6 @@ If you have existing doctor accounts in your database, they will be automaticall
 # PawPointNew
 new repo of pawpoint
 >>>>>>> 7e1d236f4ad93db773a7d1613b19e700db18baa3
+=======
+# PawPoint
+>>>>>>> b4b19406edd7ed9338b53764ac710aa0fa8bbe78
