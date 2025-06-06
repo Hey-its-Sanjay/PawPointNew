@@ -294,15 +294,15 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                         </a>
                     </li>
                     <li>
-                        <a href="doctors.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'doctors.php' ? 'active' : ''; ?>">
+                        <a href="manage_doctors.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_doctors.php' ? 'active' : ''; ?>">
                             <i class="fas fa-user-md"></i>
-                            <span>Doctors</span>
+                            <span>Manage Doctors</span>
                         </a>
                     </li>
                     <li>
-                        <a href="patients.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'patients.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-paw"></i>
-                            <span>Patients</span>
+                        <a href="manage_patients.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_patients.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-users"></i>
+                            <span>Manage Patients</span>
                         </a>
                     </li>
                     <li>
@@ -315,6 +315,12 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                         <a href="manage_products.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_products.php' ? 'active' : ''; ?>">
                             <i class="fas fa-box"></i>
                             <span>Products</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="manage_reviews.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'manage_reviews.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-star"></i>
+                            <span>Reviews</span>
                         </a>
                     </li>
                     <li>
@@ -339,21 +345,6 @@ $is_logged_in = isset($_SESSION["loggedin"]) && isset($_SESSION["admin_id"]);
                         <a href="logout.php">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Logout</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="manage_doctors.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_doctors.php' ? 'class="active"' : ''; ?>>
-                            <i class="fas fa-user-md"></i> Manage Doctors
-                        </a>
-                    </li>
-                    <li>
-                        <a href="manage_patients.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_patients.php' ? 'class="active"' : ''; ?>>
-                            <i class="fas fa-users"></i> Manage Patients
-                        </a>
-                    </li>
-                    <li>
-                        <a href="manage_reviews.php" <?php echo basename($_SERVER['PHP_SELF']) == 'manage_reviews.php' ? 'class="active"' : ''; ?>>
-                            <i class="fas fa-star"></i> Manage Reviews
                         </a>
                     </li>
                 </ul>

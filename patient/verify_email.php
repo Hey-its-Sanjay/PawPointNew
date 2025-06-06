@@ -94,8 +94,7 @@ if(isset($_GET["token"]) && !empty($_GET["token"]) && isset($_GET["email"]) && !
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <style>
+    <link rel="stylesheet" href="../css/style.css">    <style>
         @media (max-width: 768px) {
             .container {
                 width: 95%;
@@ -107,6 +106,19 @@ if(isset($_GET["token"]) && !empty($_GET["token"]) && isset($_GET["email"]) && !
             }
             .alert {
                 padding: 10px;
+                word-break: break-word;
+            }
+            a {
+                display: inline-block;
+                padding: 8px 0;
+            }
+            .verification-link {
+                word-break: break-all;
+                background: #f8f9fa;
+                padding: 10px;
+                border-radius: 4px;
+                margin: 10px 0;
+                font-size: 14px;
             }
         }
     </style>

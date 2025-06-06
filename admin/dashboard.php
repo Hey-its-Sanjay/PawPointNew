@@ -226,6 +226,7 @@ include_once "header.php";
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </a>
+            
         </div>
     </div>
 </div>

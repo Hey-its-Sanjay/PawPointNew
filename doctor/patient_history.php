@@ -18,190 +18,110 @@ if(!isset($_GET["id"]) || empty(trim($_GET["id"]))) {
 }
 
 $patient_id = trim($_GET["id"]);
+$error_message = "";
+$debug_info = [];
 
 // Get patient details and appointment history
 $patient = null;
 $appointments = [];
 
-// First get patient details
-$sql = "SELECT p.* FROM patients p 
-        INNER JOIN appointments a ON p.id = a.patient_id 
-        WHERE p.id = ? AND a.doctor_id = ? 
-        LIMIT 1";
-
-if($stmt = mysqli_prepare($conn, $sql)) {
-    mysqli_stmt_bind_param($stmt, "ii", $patient_id, $_SESSION["doctor_id"]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    
-    if($row = mysqli_fetch_assoc($result)) {
-        $patient = $row;
-    } else {
-        // If patient not found or not associated with this doctor, redirect back
-        header("location: patients.php");
-        exit;
+// First check if the patient exists
+$check_patient_sql = "SELECT id FROM patients WHERE id = ?";
+if($stmt = mysqli_prepare($conn, $check_patient_sql)) {
+    mysqli_stmt_bind_param($stmt, "i", $patient_id);
+    if(mysqli_stmt_execute($stmt)) {
+        $result = mysqli_stmt_get_result($stmt);
+        if(!mysqli_fetch_assoc($result)) {
+            $error_message = "Patient not found.";
+            $debug_info[] = "Patient ID $patient_id does not exist in the database.";
+        }
     }
     mysqli_stmt_close($stmt);
 }
 
-// Then get appointment history
-$sql = "SELECT * FROM appointments 
-        WHERE patient_id = ? AND doctor_id = ? 
-        ORDER BY appointment_date DESC, appointment_time DESC";
-
-if($stmt = mysqli_prepare($conn, $sql)) {
-    mysqli_stmt_bind_param($stmt, "ii", $patient_id, $_SESSION["doctor_id"]);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    
-    while($row = mysqli_fetch_assoc($result)) {
-        $appointments[] = $row;
+// Then check if the doctor has appointments with this patient
+if(empty($error_message)) {
+    $check_appointments_sql = "SELECT COUNT(*) as count FROM appointments WHERE patient_id = ? AND doctor_id = ?";
+    if($stmt = mysqli_prepare($conn, $check_appointments_sql)) {
+        mysqli_stmt_bind_param($stmt, "ii", $patient_id, $_SESSION["doctor_id"]);
+        if(mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            $row = mysqli_fetch_assoc($result);
+            if($row['count'] == 0) {
+                $error_message = "You don't have any appointments with this patient.";
+                $debug_info[] = "No appointments found for doctor ID " . $_SESSION["doctor_id"] . " and patient ID $patient_id";
+            }
+        }
+        mysqli_stmt_close($stmt);
     }
-    mysqli_stmt_close($stmt);
+}
+
+// If no errors, get patient details
+if(empty($error_message)) {
+    $sql = "SELECT p.*, 
+            COALESCE(p.pet_age, 'Not Specified') as pet_age,
+            COALESCE(p.pet_gender, 'Not Specified') as pet_gender,
+            COALESCE(p.phone, 'Not Available') as phone
+            FROM patients p 
+            WHERE p.id = ?";
+
+    if($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, "i", $patient_id);
+        if(mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            if($row = mysqli_fetch_assoc($result)) {
+                $patient = $row;
+            }
+        } else {
+            $error_message = "Failed to retrieve patient details.";
+            $debug_info[] = "MySQL Error: " . mysqli_error($conn);
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
+
+// Then get appointment history if patient was found
+if ($patient) {
+    $sql = "SELECT * FROM appointments 
+            WHERE patient_id = ? AND doctor_id = ? 
+            ORDER BY appointment_date DESC, appointment_time DESC";
+
+    if($stmt = mysqli_prepare($conn, $sql)) {
+        mysqli_stmt_bind_param($stmt, "ii", $patient_id, $_SESSION["doctor_id"]);
+        if(mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            while($row = mysqli_fetch_assoc($result)) {
+                $appointments[] = $row;
+            }
+        }
+        mysqli_stmt_close($stmt);
+    }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient History - PawPoint</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+<?php include('header.php'); ?>
 
-        .patient-profile {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .patient-profile h3 {
-            color: #4a7c59;
-            margin-top: 0;
-            grid-column: 1 / -1;
-        }
-
-        .profile-section {
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .profile-section h4 {
-            margin-top: 0;
-            color: #4a7c59;
-        }
-
-        .appointment-history {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .appointment-list {
-            margin-top: 20px;
-        }
-
-        .appointment-card {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #f9f9f9;
-        }
-
-        .appointment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .appointment-date {
-            font-weight: bold;
-            color: #4a7c59;
-        }
-
-        .appointment-status {
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.9em;
-        }
-
-        .status-completed { background: #c8e6c9; color: #2e7d32; }
-        .status-confirmed { background: #bbdefb; color: #1976d2; }
-        .status-pending { background: #fff9c4; color: #f57f17; }
-        .status-cancelled { background: #ffcdd2; color: #c62828; }
-
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #4a7c59;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .back-btn:hover {
-            background-color: #3e5c47;
-        }
-
-        @media (max-width: 768px) {
-            .patient-profile {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>PawPoint</h1>
-        <p>Your Pet's Healthcare Companion</p>
-    </header>
-
-    <nav>
-        <ul>
-            <li><a href="dashboard.php">Dashboard</a></li>
-            <li><a href="profile.php">My Profile</a></li>
-            <li><a href="appointments.php">Appointments</a></li>
-            <li><a href="patients.php">Patients</a></li>
-            <li><a href="logout.php">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <a href="patients.php" class="back-btn">← Back to Patients</a>
-        
+<div class="container">
+    <a href="patients.php" class="back-btn">← Back to Patients</a>
+    
+    <?php if ($patient): ?>
         <div class="patient-profile">
             <h3>Patient Profile</h3>
             
             <div class="profile-section">
                 <h4>Patient Details</h4>
-                <p><strong>Name:</strong> <?= htmlspecialchars($patient['name']) ?></p>
-                <p><strong>Email:</strong> <?= htmlspecialchars($patient['email']) ?></p>
-                <p><strong>Phone:</strong> <?= htmlspecialchars($patient['phone']) ?></p>
-                <p><strong>Address:</strong> <?= htmlspecialchars($patient['address']) ?></p>
+                <p><strong>Name:</strong> <?= htmlspecialchars($patient['name'] ?? 'Not available') ?></p>
+                <p><strong>Email:</strong> <?= htmlspecialchars($patient['email'] ?? 'Not available') ?></p>
+                <p><strong>Phone:</strong> <?= htmlspecialchars($patient['phone'] ?? 'Not available') ?></p>
+                <p><strong>Address:</strong> <?= htmlspecialchars($patient['address'] ?? 'Not available') ?></p>
             </div>
 
             <div class="profile-section">
                 <h4>Pet Details</h4>
-                <p><strong>Pet Name:</strong> <?= htmlspecialchars($patient['pet_name']) ?></p>
-                <p><strong>Pet Type:</strong> <?= htmlspecialchars($patient['pet_type']) ?></p>
-                <p><strong>Pet Age:</strong> <?= htmlspecialchars($patient['pet_age']) ?> years</p>
-                <p><strong>Pet Gender:</strong> <?= htmlspecialchars($patient['pet_gender']) ?></p>
+                <p><strong>Pet Name:</strong> <?= htmlspecialchars($patient['pet_name'] ?? 'Not available') ?></p>
+                <p><strong>Pet Type:</strong> <?= htmlspecialchars($patient['pet_type'] ?? 'Not available') ?></p>
+                <p><strong>Pet Age:</strong> <?= ($patient['pet_age'] && $patient['pet_age'] !== 'Not Specified') ? htmlspecialchars($patient['pet_age']) . ' years' : 'Not specified' ?></p>
+                <p><strong>Pet Gender:</strong> <?= ($patient['pet_gender'] && $patient['pet_gender'] !== 'Not Specified') ? htmlspecialchars($patient['pet_gender']) : 'Not specified' ?></p>
             </div>
         </div>
 
@@ -223,7 +143,7 @@ if($stmt = mysqli_prepare($conn, $sql)) {
                                     <?= ucfirst($appointment['status']) ?>
                                 </span>
                             </div>
-                            <p><strong>Reason:</strong> <?= htmlspecialchars($appointment['reason']) ?></p>
+                            <p><strong>Reason:</strong> <?= htmlspecialchars($appointment['reason'] ?? 'Not specified') ?></p>
                             <?php if(!empty($appointment['notes'])): ?>
                                 <p><strong>Notes:</strong> <?= htmlspecialchars($appointment['notes']) ?></p>
                             <?php endif; ?>
@@ -231,11 +151,21 @@ if($stmt = mysqli_prepare($conn, $sql)) {
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+        </div>    <?php else: ?>
+        <div class="alert">
+            <p><?php echo !empty($error_message) ? htmlspecialchars($error_message) : "No patient found or you don't have permission to view this patient's history."; ?></p>
+            <?php if(!empty($debug_info) && isset($_SESSION['is_dev']) && $_SESSION['is_dev']): ?>
+                <div class="debug-info">
+                    <h4>Debug Information:</h4>
+                    <ul>
+                        <?php foreach($debug_info as $info): ?>
+                            <li><?php echo htmlspecialchars($info); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
         </div>
-    </div>
+    <?php endif; ?>
+</div>
 
-    <footer>
-        <p>&copy; <?= date("Y") ?> PawPoint. All rights reserved.</p>
-    </footer>
-</body>
-</html>
+<?php include('../includes/footer.php'); ?>
