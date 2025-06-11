@@ -75,6 +75,11 @@ if ($is_logged_in) {
                         </a>
                     </li>
                     <li>
+                        <a href="symptom_checker.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'symptom_checker.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-stethoscope"></i> Symptom Checker
+                        </a>
+                    </li>
+                    <li>
                         <a href="cart.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'cart.php' ? 'active' : ''; ?>">
                             <i class="fas fa-shopping-cart"></i> Cart
                             <?php if ($cart_count > 0): ?>

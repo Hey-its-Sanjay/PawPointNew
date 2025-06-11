@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#e8f4ea" />
+  <circle cx="100" cy="80" r="40" fill="#4a7c59" />
+  <rect x="60" y="130" width="80" height="40" rx="10" fill="#4a7c59" />
+  <text x="100" y="170" font-family="Arial" font-size="14" fill="white" text-anchor="middle" dominant-baseline="middle">Symptom</text>
+  <path d="M85,80 L95,90 L115,70" stroke="white" stroke-width="4" fill="none" />
+</svg>
