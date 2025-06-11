@@ -430,15 +430,15 @@ if(isset($_SESSION["doctor_id"])) {
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <img src="images/pawpoint.png" alt="PawPoint Logo" style="height: 60px; margin-right: 5px; vertical-align: middle;">
+                    <img src="PawPoint/images/pawpoint.png" alt="PawPoint Logo" style="height: 60px; margin-right: 5px; vertical-align: middle;">
                     Paw<span>Point</span>
                 </div>
                 <nav>
                     <ul>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="patient/login.php">Patient</a></li>
-                        <li><a href="doctor/login.php">Doctor</a></li>
-                        <li><a href="admin/login.php">Admin</a></li>
+                        <li><a href="../index.php">Home</a></li>
+                        <li><a href="PawPoint/patient/login.php">Patient</a></li>
+                        <li><a href="PawPoint/doctor/login.php">Doctor</a></li>
+                        <li><a href="PawPoint/admin/login.php">Admin</a></li>
                     </ul>
                 </nav>
             </div>
