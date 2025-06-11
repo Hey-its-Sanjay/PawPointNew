@@ -383,9 +383,11 @@ if($stmt = mysqli_prepare($conn, $sql)) {
 
         <div class="form-container">
             <h3>Quick Actions</h3>
+            <!-- Modify the quick-actions div around line 390 -->
             <div class="quick-actions">
                 <a href="appointments.php" class="btn btn-primary">View Appointments</a>
                 <a href="patients.php" class="btn btn-primary">Manage Patients</a>
+                <a href="chat.php" class="btn btn-primary">Messages <span id="unreadBadge" class="unread-badge" style="display: none;"></span></a>
                 <a href="profile.php" class="btn btn-primary">Update Profile</a>
             </div>
         </div>
@@ -396,3 +398,42 @@ if($stmt = mysqli_prepare($conn, $sql)) {
     </footer>
 </body>
 </html>
+
+<!-- Add this to the style section around line 250 -->
+.unread-badge {
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    margin-left: 5px;
+}
+
+<!-- Add this script before the closing body tag -->
+<script>
+    // Function to check for unread messages
+    function checkUnreadMessages() {
+        fetch('../includes/get_unread_count.php')
+            .then(response => response.json())
+            .then(data => {
+                const unreadBadge = document.getElementById('unreadBadge');
+                if (data.unread_count > 0) {
+                    unreadBadge.textContent = data.unread_count;
+                    unreadBadge.style.display = 'inline-flex';
+                } else {
+                    unreadBadge.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error checking unread messages:', error));
+    }
+    
+    // Check for unread messages initially
+    checkUnreadMessages();
+    
+    // Check for unread messages every 30 seconds
+    setInterval(checkUnreadMessages, 30000);
+</script>

@@ -435,7 +435,7 @@ if(isset($_SESSION["doctor_id"])) {
                 </div>
                 <nav>
                     <ul>
-                        <li><a href="../index.php">Home</a></li>
+                        <li><a href="index.php">Home</a></li>
                         <li><a href="patient/login.php">Patient</a></li>
                         <li><a href="doctor/login.php">Doctor</a></li>
                         <li><a href="admin/login.php">Admin</a></li>
@@ -452,8 +452,8 @@ if(isset($_SESSION["doctor_id"])) {
                 <h1>Your Pet's Health Is Our Priority</h1>
                 <p>Professional veterinary care with a compassionate touch. We're dedicated to providing the best medical care for your beloved pets.</p>
                 <div class="hero-buttons">
-                    <a href="patient/register.php" class="btn">Register as Patient</a>
-                    <a href="doctor/register.php" class="btn btn-secondary">Register as Doctor</a>
+                    <a href="PawPoint/patient/register.php" class="btn">Register as Patient</a>
+                    <a href="PawPoint/doctor/register.php" class="btn btn-secondary">Register as Doctor</a>
                 </div>
             </div>
             <img src="https://images.unsplash.com/photo-1581888227599-779811939961?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Veterinarian with dog" class="hero-image">

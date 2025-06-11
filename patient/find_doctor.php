@@ -194,35 +194,44 @@ if($stmt = mysqli_prepare($conn, $sql)) {
         
         .doctor-actions {
             margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-view-profile,
+        .btn-book,
+        .btn-chat {
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+            font-size: 0.9em;
+            transition: opacity 0.2s;
         }
         
         .btn-view-profile {
             background-color: #4a7c59;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 10px;
         }
         
         .btn-book {
-            background-color: #31725b;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
+            background-color: #e67e22;
         }
         
-        .btn-view-profile:hover, .btn-book:hover {
-            opacity: 0.9;
+        .btn-view-profile:hover,
+        .btn-book:hover,
+        .btn-chat:hover {
+            opacity: 0.8;
         }
         
         .review-count {
             color: #666;
-            font-size: 0.9em;
+            font-size: 0.9rem;
             margin-left: 5px;
+        }
+
+        .btn-chat {
+            background-color: #3498db;
         }
         
         @media (max-width: 768px) {
@@ -325,6 +334,9 @@ if($stmt = mysqli_prepare($conn, $sql)) {
                                 </a>
                                 <a href="book_appointment.php?doctor_id=<?php echo $doctor['id']; ?>" class="btn-book">
                                     Book Appointment
+                                </a>
+                                <a href="chat.php?doctor_id=<?php echo $doctor['id']; ?>" class="btn-chat">
+                                    <i class="fas fa-comments"></i> Chat
                                 </a>
                             </div>
                         </div>

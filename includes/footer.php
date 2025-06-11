@@ -114,3 +114,44 @@
     }
 }
 </style>
+
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">PawPoint</div>
+                <ul class="footer-links">
+                    <li><a href="../index.php">Home</a></li>
+                    <li><a href="../index.php#services">Services</a></li>
+                    <li><a href="../index.php#about">About</a></li>
+                    <li><a href="../index.php#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <?php echo date('Y'); ?> PawPoint. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            document.querySelector('.nav-menu').classList.toggle('active');
+        });
+        
+        // Admin sidebar toggle (if exists)
+        const toggleSidebar = document.querySelector('.toggle-sidebar');
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('active');
+                document.querySelector('.main-content').classList.toggle('full-width');
+            });
+        }
+    </script>
+</body>
+</html>
